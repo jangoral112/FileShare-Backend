@@ -4,5 +4,7 @@ eureka:
         registerWithEureka: false
     instance:
         hostname: localhost
+    server:
+        enable-self-preservation: false
 server:
     port: 8761
