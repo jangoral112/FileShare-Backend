@@ -1,5 +1,7 @@
 server:
   port: 8082
+  error:
+    include-message: always
 
 eureka:
   client:
@@ -9,3 +11,7 @@ eureka:
 spring:
   application:
     name: user-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/FileShare
+    username: postgres
+    password: password
