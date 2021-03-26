@@ -1,6 +1,7 @@
 package com.jango.user.service.entity;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import javax.persistence.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Role {
 
     @Id
@@ -21,4 +23,7 @@ public class Role {
     @Column(name = "name")
     private String name;
 
+    public Role(String name) {
+        this.name = name;
+    }
 }
