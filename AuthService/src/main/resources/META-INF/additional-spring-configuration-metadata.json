@@ -1,0 +1,23 @@
+{
+  "properties": [
+    {
+      "name": "security.password.encoding.strength",
+      "type": "java.lang.String",
+      "description": "Description for security.password.encoding.strength."
+    },
+    {
+      "name": "security.jwt.secret-key",
+      "type": "java.lang.String",
+      "description": "Description for security.jwt.secret-key."
+    },
+    {
+      "name": "security.jwt.validity-time",
+      "type": "java.lang.Long",
+      "description": "Description for security.jwt.validity-time."
+    },
+    {
+      "name": "security.jwt.signature-algorithm",
+      "type": "io.jsonwebtoken.SignatureAlgorithm",
+      "description": "Description for security.jwt.signature-algorithm."
+    }
+  ] }

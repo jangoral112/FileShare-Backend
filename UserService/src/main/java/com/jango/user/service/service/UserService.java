@@ -6,6 +6,7 @@ import com.jango.user.service.entity.User;
 import com.jango.user.service.repository.RoleRepository;
 import com.jango.user.service.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -22,6 +23,9 @@ public class UserService {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     public String createUser(CreateUserRequest createUserRequest) {
 
         Set<Role> userRoles = createUserRequest.getRoles()
@@ -33,7 +37,7 @@ public class UserService {
                         .name(createUserRequest.getName())
                         .description(createUserRequest.getDescription())
                         .email(createUserRequest.getEmail())
-                        .password(createUserRequest.getPassword())
+                        .password(passwordEncoder.encode(createUserRequest.getPassword()))
                         .creationDate(Timestamp.valueOf(LocalDateTime.now()))
                         .roles(userRoles)
                         .build();

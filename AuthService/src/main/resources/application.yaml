@@ -1,5 +1,5 @@
 server:
-  port: 8082
+  port: 8083
   error:
     include-message: always
 
@@ -10,7 +10,7 @@ eureka:
 
 spring:
   application:
-    name: user-service
+    name: auth-service
   datasource:
     url: jdbc:postgresql://localhost:5432/FileShare
     username: postgres
@@ -20,3 +20,7 @@ security:
   password:
     encoding:
       strength: 10
+  jwt:
+    secret-key: secret
+    validity-time: 1200000
+    signature-algorithm: HS256
