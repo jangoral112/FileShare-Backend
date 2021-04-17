@@ -20,3 +20,9 @@ security:
   password:
     encoding:
       strength: 10
+      
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'

@@ -1,4 +1,4 @@
-package com.jango.gateway.configuration;
+package com.jango.user.config;
 
 import org.springframework.boot.actuate.trace.http.HttpTraceRepository;
 import org.springframework.boot.actuate.trace.http.InMemoryHttpTraceRepository;
