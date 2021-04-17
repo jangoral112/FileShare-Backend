@@ -4,6 +4,7 @@ import com.jango.user.dto.CreateUserRequest;
 import com.jango.user.entity.Role;
 import com.jango.user.entity.User;
 import com.jango.user.enumeration.Roles;
+import com.jango.user.exception.UserAlreadyExistException;
 import com.jango.user.repository.RoleRepository;
 import com.jango.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,14 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     public String createUser(CreateUserRequest createUserRequest) {
+
+        if(userRepository.existsByName(createUserRequest.getUsername())) {
+            throw new UserAlreadyExistException("User with given username already exist!");
+        }
+        
+        if(userRepository.existsByEmail(createUserRequest.getEmail())) {
+            throw new UserAlreadyExistException("User with given email already exist!");
+        }
         
         Set<Role> userRoles;
         
@@ -50,8 +59,8 @@ public class UserService {
                         .creationDate(Timestamp.valueOf(LocalDateTime.now()))
                         .roles(userRoles)
                         .build();
-
-        User savedUser = userRepository.save(user);
+        
+        userRepository.save(user);
 
         return "Successfully created new user!";
     }

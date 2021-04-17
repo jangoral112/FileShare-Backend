@@ -25,6 +25,7 @@ spring:
           '[/**]':
             allowedOrigins: '*'
             allowedMethods: '*'
+        add-to-simple-url-handler-mapping: true
         
 management:
   endpoints:
