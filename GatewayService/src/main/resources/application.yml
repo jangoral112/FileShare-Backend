@@ -20,4 +20,15 @@ spring:
           uri: lb://auth-service
           predicates:
             - Path=/authUser
+      globalcors:
+        cors-configurations: 
+          '[/**]':
+            allowedOrigins: '*'
+            allowedMethods: '*'
+        
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
 
