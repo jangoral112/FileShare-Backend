@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 public class AuthenticationController {
 
@@ -15,11 +18,17 @@ public class AuthenticationController {
     private AuthenticationService authenticationService;
 
     @PostMapping("/authUser")
-    public ResponseEntity<String> authenticateUser(@RequestBody UserAuthenticationRequest request) {
+    public ResponseEntity<Map<String, String>> authenticateUser(@RequestBody UserAuthenticationRequest request) {
 
         String authToken = authenticationService.authenticateUser(request);
 
-        return ResponseEntity.ok().header("Authorization", "bearer" + authToken).build();
+        Map<String, String> responseBody = new HashMap<>();
+        responseBody.put("message", "Successfully logged in");
+
+        return ResponseEntity.ok()
+                             .header("Access-Control-Expose-Headers", "Authorization")
+                             .header("Authorization", "bearer" + authToken)
+                             .body(responseBody);
     }
 
 
