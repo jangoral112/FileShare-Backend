@@ -24,8 +24,6 @@ import java.util.Optional;
 @Service
 public class FileService {
     
-    public final String uploadDir = "D:\\Studia\\Sem_6\\ZAI\\FileShare\\Temp_file_storage\\upload_dest";
-    
     private final String EMPTY_FILE_NAME = "";
     
     @Autowired
