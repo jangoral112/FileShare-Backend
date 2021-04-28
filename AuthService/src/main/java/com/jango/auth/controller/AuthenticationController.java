@@ -27,7 +27,7 @@ public class AuthenticationController {
 
         return ResponseEntity.ok()
                              .header("Access-Control-Expose-Headers", "Authorization")
-                             .header("Authorization", "bearer" + authToken)
+                             .header("Authorization", "Bearer " + authToken)
                              .body(responseBody);
     }
 

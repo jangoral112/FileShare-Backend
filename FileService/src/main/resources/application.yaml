@@ -1,0 +1,40 @@
+server:
+  port: 8084
+  
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+      
+spring:
+  application:
+    name: file-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/FileShare
+    username: postgres
+    password: password
+    
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+        
+cloud:
+  aws:
+    region:
+      static: us-west-1
+      auto: false
+    stack:
+      auto: false
+    credentials:
+      profile-name: default
+
+default-bucket-name: my-file-share-bucket-123
+
+logging:
+  level:
+    com:
+      amazonaws:
+        util:
+          EC2MetadataUtils: error

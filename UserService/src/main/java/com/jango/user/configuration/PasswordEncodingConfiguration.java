@@ -1,4 +1,4 @@
-package com.jango.user.config;
+package com.jango.user.configuration;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

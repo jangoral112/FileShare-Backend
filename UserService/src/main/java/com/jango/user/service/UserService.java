@@ -1,6 +1,7 @@
 package com.jango.user.service;
 
 import com.jango.user.dto.CreateUserRequest;
+import com.jango.user.dto.UserDetailsWithIdResponse;
 import com.jango.user.entity.Role;
 import com.jango.user.entity.User;
 import com.jango.user.enumeration.Roles;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -63,5 +65,37 @@ public class UserService {
         userRepository.save(user);
 
         return "Successfully created new user!";
+    }
+    
+    public UserDetailsWithIdResponse getUserDetailsByEmail(String email) { // TODO secure
+        Optional<User> optionalUser = userRepository.getUserByEmail(email);
+        if(optionalUser.isEmpty()) {
+            return null;
+        }
+        User user = optionalUser.get();
+        
+        return UserDetailsWithIdResponse.builder()
+                                        .username(user.getName())
+                                        .email(user.getEmail())
+                                        .description(user.getDescription())
+                                        .creationDate(user.getCreationDate())
+                                        .id(user.getId())
+                                        .build();
+    }
+    
+    public UserDetailsWithIdResponse getUserDetailsById(Long userId) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if(optionalUser.isEmpty()) {
+            return null;
+        }
+        User user = optionalUser.get();
+        
+        return UserDetailsWithIdResponse.builder()
+                                        .username(user.getName())
+                                        .email(user.getEmail())
+                                        .description(user.getDescription())
+                                        .creationDate(user.getCreationDate())
+                                        .id(user.getId())
+                                        .build();
     }
 }
