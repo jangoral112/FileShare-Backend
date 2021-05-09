@@ -12,18 +12,31 @@ spring:
   cloud:
     gateway:
       routes:
+
+        - id: user-service-public
+          uri: lb://user-service
+          predicates:
+            - Path=/user
+            - Method=POST
         - id: user-service
           uri: lb://user-service
           predicates:
             - Path=/user/**
+          filters:
+            - Authorization=ROLE_USER
+        
         - id: auth-service
           uri: lb://auth-service
           predicates:
             - Path=/authUser
+
         - id: file-service
           uri: lb://file-service
           predicates:
             - Path=/file/**
+          filters:
+            - Authorization=ROLE_USER
+
       globalcors:
         cors-configurations: 
           '[/**]':
@@ -37,3 +50,12 @@ management:
       exposure:
         include: '*'
 
+
+security:
+  password:
+    encoding:
+      strength: 10
+  jwt:
+    secret-key: secret
+    validity-time: 1200000
+    signature-algorithm: HS256

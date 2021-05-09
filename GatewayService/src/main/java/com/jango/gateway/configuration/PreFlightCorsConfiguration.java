@@ -19,7 +19,8 @@ public class PreFlightCorsConfiguration {
         return new CorsWebFilter(corsConfigurationSource());
     }
 
-    @Bean CorsConfigurationSource corsConfigurationSource() {
+    @Bean 
+    CorsConfigurationSource corsConfigurationSource() {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration().applyPermitDefaultValues();
         config.setAllowedMethods(Arrays.stream(HttpMethod.values()).map(Enum::toString).collect(Collectors.toList()));

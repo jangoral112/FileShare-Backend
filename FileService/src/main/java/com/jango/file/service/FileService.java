@@ -1,5 +1,6 @@
 package com.jango.file.service;
 
+import com.jango.file.client.AuthServiceClient;
 import com.jango.file.client.UserServiceClient;
 import com.jango.file.dto.FileMetaDataResponse;
 import com.jango.file.dto.UploadFileMetaDataRequestPart;
@@ -18,6 +19,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -37,6 +40,9 @@ public class FileService {
     
     @Autowired
     private UserServiceClient userServiceClient;
+    
+    @Autowired
+    private AuthServiceClient authServiceClient;
     
     public boolean uploadFile(UploadFileMetaDataRequestPart metaDataRequestPart, MultipartFile file) {
         
@@ -144,5 +150,43 @@ public class FileService {
         }
 
         return optionalFileMetaData.get();
+    }
+    
+    public List<FileMetaDataResponse> getFileListByOwner(String email, String token) {
+        Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(email, token);
+        
+        UserDetailsWithIdResponse userDetails = userServiceClient.getUserDetailsByEmail(email);
+        User owner = User.builder()
+                         .id(userDetails.getId())
+                         .build();
+        
+        List<FileMetaData> filesMetaData;
+        
+        if(ownerOfToken) {
+          filesMetaData = fileMetaDataRepository.findAllByOwner(owner);
+        } else {
+            filesMetaData = fileMetaDataRepository.findAllByOwnerAndPublic(owner);
+        }
+        
+        List<FileMetaDataResponse> fileMetaDataResponses = new ArrayList<>();
+        
+        for(FileMetaData fileMetaData: filesMetaData) {
+            
+            FileKey fileKey = fileKeyRepository.getOne(fileMetaData.getKeyId());
+            
+            FileMetaDataResponse response = FileMetaDataResponse.builder()
+                                                                .ownerEmail(userDetails.getEmail())
+                                                                .ownerUserName(userDetails.getUsername())
+                                                                .fileName(fileMetaData.getFileName())
+                                                                .fileDescription(fileMetaData.getDescription())
+                                                                .fileKey(fileKey.getKey())
+                                                                .publicFileFlag(fileMetaData.getPublicFileFlag())
+                                                                .creationDate(fileMetaData.getCreationDate())
+                                                                .size(fileMetaData.getSize())
+                                                                .build();
+            fileMetaDataResponses.add(response);
+        }
+        
+        return fileMetaDataResponses;
     }
 }

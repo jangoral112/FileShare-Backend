@@ -10,10 +10,10 @@
     },
     {
       "name": "security.jwt.validity-time",
-      "type": "java.lang.Long"
+      "type": "java.lang.String"
     },
     {
       "name": "security.jwt.signature-algorithm",
-      "type": "io.jsonwebtoken.SignatureAlgorithm"
+      "type": "java.lang.String"
     }
   ] }

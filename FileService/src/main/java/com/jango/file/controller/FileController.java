@@ -51,13 +51,6 @@ import java.util.List;
         return ResponseEntity.ok(builder.build());
     }
     
-    @GetMapping(path = "/list")
-    public ResponseEntity<List<FileMetaDataResponse>> getFileListByOwner(@RequestParam(name = "email") String email, 
-                                                                         @RequestHeader("authorization") String authToken) { // TODO
-        
-        return ResponseEntity.ok(Collections.emptyList());
-    }
-    
     @DeleteMapping
     public String removeFile(@RequestParam("key") String key) {
         
@@ -67,4 +60,14 @@ import java.util.List;
         
         return "Failed to remove file";
     }
+    
+    @GetMapping(path = "/list")
+    public ResponseEntity<List<FileMetaDataResponse>> getFileListByOwner(@RequestParam(name = "email") String email, 
+                                                                         @RequestHeader("authorization") String authToken) {
+        
+        fileService.getFileListByOwner(email, authToken);
+        
+        return ResponseEntity.ok(Collections.emptyList());
+    }
+    
 }
