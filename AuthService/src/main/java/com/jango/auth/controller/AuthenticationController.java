@@ -30,9 +30,9 @@ public class AuthenticationController {
     }
     
     @GetMapping("/validateOwner")
-    public ResponseEntity<Boolean> isUserOwnerOfToken(@RequestParam("email") String email, @RequestParam("token") String token) {
+    public ResponseEntity<Boolean> isUserOwnerOfToken(@RequestParam("email") String email, @RequestHeader("authorization") String authHeader) {
         
-        Boolean result = authenticationService.isUserOwnerOfToken(email, token);
+        Boolean result = authenticationService.isUserOwnerOfToken(email, authHeader);
         
         return ResponseEntity.ok(result);
     }

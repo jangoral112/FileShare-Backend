@@ -152,10 +152,10 @@ public class FileService {
         return optionalFileMetaData.get();
     }
     
-    public List<FileMetaDataResponse> getFileListByOwner(String email, String token) {
-        Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(email, token);
+    public List<FileMetaDataResponse> getFileListByOwner(String ownerEmail, String token) {
+        Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(ownerEmail, token);
         
-        UserDetailsWithIdResponse userDetails = userServiceClient.getUserDetailsByEmail(email);
+        UserDetailsWithIdResponse userDetails = userServiceClient.getUserDetailsByEmail(ownerEmail);
         User owner = User.builder()
                          .id(userDetails.getId())
                          .build();

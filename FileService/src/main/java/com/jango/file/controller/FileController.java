@@ -14,11 +14,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Collections;
 import java.util.List;
 
 @RestController 
-@RequestMapping("/file") public class FileController {
+@RequestMapping("/file") 
+public class FileController {
 
     @Autowired 
     private FileService fileService;
@@ -62,12 +62,12 @@ import java.util.List;
     }
     
     @GetMapping(path = "/list")
-    public ResponseEntity<List<FileMetaDataResponse>> getFileListByOwner(@RequestParam(name = "email") String email, 
+    public ResponseEntity<List<FileMetaDataResponse>> getFileListByOwner(@RequestParam(name = "ownerEmail") String ownerEmail, 
                                                                          @RequestHeader("authorization") String authToken) {
         
-        fileService.getFileListByOwner(email, authToken);
+        List<FileMetaDataResponse> response = fileService.getFileListByOwner(ownerEmail, authToken);
         
-        return ResponseEntity.ok(Collections.emptyList());
+        return ResponseEntity.ok(response);
     }
     
 }
