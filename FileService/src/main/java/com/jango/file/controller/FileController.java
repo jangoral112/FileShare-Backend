@@ -1,6 +1,6 @@
 package com.jango.file.controller;
 
-import com.jango.file.dto.FileMetaDataResponse;
+import com.jango.file.dto.FileMetadataResponse;
 import com.jango.file.dto.FileUploadMetadata;
 import com.jango.file.mapping.JsonStringToPOJOMapper;
 import com.jango.file.service.FileService;
@@ -42,7 +42,7 @@ public class FileController {
     public ResponseEntity<MultiValueMap<String, HttpEntity<?>>> downloadFile(@RequestParam("key") String key) {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
 
-        FileMetaDataResponse fileMetaDataResponse = fileService.getFileMetaDataResponseByKey(key);
+        FileMetadataResponse fileMetaDataResponse = fileService.getFileMetaDataResponseByKey(key);
         ByteArrayResource byteArrayResource = fileService.downloadFile(key);
 
         builder.part("file_metadata", fileMetaDataResponse, MediaType.APPLICATION_JSON);
@@ -62,10 +62,10 @@ public class FileController {
     }
     
     @GetMapping(path = "/list")
-    public ResponseEntity<List<FileMetaDataResponse>> getFileListByOwner(@RequestParam(name = "ownerEmail") String ownerEmail, 
+    public ResponseEntity<List<FileMetadataResponse>> getFileListByOwner(@RequestParam(name = "ownerEmail") String ownerEmail,
                                                                          @RequestHeader("authorization") String authToken) {
         
-        List<FileMetaDataResponse> response = fileService.getFileListByOwner(ownerEmail, authToken);
+        List<FileMetadataResponse> response = fileService.getFileListByOwner(ownerEmail, authToken);
         
         return ResponseEntity.ok(response);
     }

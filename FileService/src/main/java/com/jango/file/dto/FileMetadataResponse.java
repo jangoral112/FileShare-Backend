@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FileMetaDataResponse {
+public class FileMetadataResponse {
     
     private String ownerEmail;
     

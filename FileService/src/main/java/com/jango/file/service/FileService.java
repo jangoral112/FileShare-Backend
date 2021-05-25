@@ -2,7 +2,7 @@ package com.jango.file.service;
 
 import com.jango.file.client.AuthServiceClient;
 import com.jango.file.client.UserServiceClient;
-import com.jango.file.dto.FileMetaDataResponse;
+import com.jango.file.dto.FileMetadataResponse;
 import com.jango.file.dto.FileUploadMetadata;
 import com.jango.file.dto.UserDetailsWithIdResponse;
 import com.jango.file.entity.FileKey;
@@ -98,7 +98,7 @@ public class FileService {
         return null;
     }
     
-    public FileMetaDataResponse getFileMetaDataResponseByKey(String key) {
+    public FileMetadataResponse getFileMetaDataResponseByKey(String key) {
         
         FileMetaData fileMetaData = getFileMetaDataByKey(key);
         
@@ -109,7 +109,7 @@ public class FileService {
         User owner = fileMetaData.getOwner();
         
         
-        return FileMetaDataResponse.builder()
+        return FileMetadataResponse.builder()
                                    .ownerEmail(owner.getEmail())
                                    .ownerUserName(owner.getName())
                                    .fileName(fileMetaData.getFileName())
@@ -152,7 +152,7 @@ public class FileService {
         return optionalFileMetaData.get();
     }
     
-    public List<FileMetaDataResponse> getFileListByOwner(String ownerEmail, String token) {
+    public List<FileMetadataResponse> getFileListByOwner(String ownerEmail, String token) {
         Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(ownerEmail, token);
         
         UserDetailsWithIdResponse userDetails = userServiceClient.getUserDetailsByEmail(ownerEmail);
@@ -168,13 +168,13 @@ public class FileService {
             filesMetaData = fileMetaDataRepository.findAllByOwnerAndPublic(owner);
         }
         
-        List<FileMetaDataResponse> fileMetaDataResponses = new ArrayList<>();
+        List<FileMetadataResponse> fileMetadataRespons = new ArrayList<>();
         
         for(FileMetaData fileMetaData: filesMetaData) {
             
             FileKey fileKey = fileKeyRepository.getOne(fileMetaData.getKeyId());
             
-            FileMetaDataResponse response = FileMetaDataResponse.builder()
+            FileMetadataResponse response = FileMetadataResponse.builder()
                                                                 .ownerEmail(userDetails.getEmail())
                                                                 .ownerUserName(userDetails.getUsername())
                                                                 .fileName(fileMetaData.getFileName())
@@ -184,9 +184,9 @@ public class FileService {
                                                                 .creationDate(fileMetaData.getCreationDate())
                                                                 .size(fileMetaData.getSize())
                                                                 .build();
-            fileMetaDataResponses.add(response);
+            fileMetadataRespons.add(response);
         }
         
-        return fileMetaDataResponses;
+        return fileMetadataRespons;
     }
 }
