@@ -25,7 +25,7 @@ public class FileMetadataResponse {
     
     private Boolean publicFileFlag;
     
-    private Timestamp creationDate;
+    private Timestamp uploadTimestamp;
     
     private Long size;
 

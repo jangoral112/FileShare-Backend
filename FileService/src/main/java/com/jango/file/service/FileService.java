@@ -62,7 +62,7 @@ public class FileService {
                                                 .owner(userWithId)
                                                 .size(file.getSize())
                                                 .publicFileFlag(metaDataRequestPart.getPublicFileFlag())
-                                                .creationDate(Timestamp.valueOf(LocalDateTime.now()))
+                                                .uploadTimestamp(Timestamp.valueOf(LocalDateTime.now()))
                                                 .build();
 
         
@@ -115,7 +115,7 @@ public class FileService {
                                    .fileName(fileMetaData.getFileName())
                                    .fileDescription(fileMetaData.getDescription())
                                    .fileKey(key)
-                                   .creationDate(fileMetaData.getCreationDate())
+                                   .uploadTimestamp(fileMetaData.getUploadTimestamp())
                                    .publicFileFlag(fileMetaData.getPublicFileFlag())
                                    .size(fileMetaData.getSize())
                                    .build();
@@ -168,7 +168,7 @@ public class FileService {
             filesMetaData = fileMetaDataRepository.findAllByOwnerAndPublic(owner);
         }
         
-        List<FileMetadataResponse> fileMetadataRespons = new ArrayList<>();
+        List<FileMetadataResponse> fileMetadataResponse = new ArrayList<>();
         
         for(FileMetaData fileMetaData: filesMetaData) {
             
@@ -181,12 +181,12 @@ public class FileService {
                                                                 .fileDescription(fileMetaData.getDescription())
                                                                 .fileKey(fileKey.getKey())
                                                                 .publicFileFlag(fileMetaData.getPublicFileFlag())
-                                                                .creationDate(fileMetaData.getCreationDate())
+                                                                .uploadTimestamp(fileMetaData.getUploadTimestamp())
                                                                 .size(fileMetaData.getSize())
                                                                 .build();
-            fileMetadataRespons.add(response);
+            fileMetadataResponse.add(response);
         }
         
-        return fileMetadataRespons;
+        return fileMetadataResponse;
     }
 }

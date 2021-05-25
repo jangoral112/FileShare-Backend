@@ -39,8 +39,8 @@ public class FileMetaData {
     @Column(name = "public_file_flag")
     private Boolean publicFileFlag;
     
-    @Column(name = "creation_date")
-    private Timestamp creationDate;
+    @Column(name = "upload_timestamp")
+    private Timestamp uploadTimestamp;
 
     @Column(name = "key_id")
     @Generated(GenerationTime.INSERT)
