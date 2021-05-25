@@ -3,7 +3,7 @@ package com.jango.file.service;
 import com.jango.file.client.AuthServiceClient;
 import com.jango.file.client.UserServiceClient;
 import com.jango.file.dto.FileMetaDataResponse;
-import com.jango.file.dto.UploadFileMetaDataRequestPart;
+import com.jango.file.dto.FileUploadMetadata;
 import com.jango.file.dto.UserDetailsWithIdResponse;
 import com.jango.file.entity.FileKey;
 import com.jango.file.entity.FileMetaData;
@@ -44,7 +44,7 @@ public class FileService {
     @Autowired
     private AuthServiceClient authServiceClient;
     
-    public boolean uploadFile(UploadFileMetaDataRequestPart metaDataRequestPart, MultipartFile file) {
+    public boolean uploadFile(FileUploadMetadata metaDataRequestPart, MultipartFile file) {
         
         String metaDataFileName = metaDataRequestPart.getFileName();
         String fileOriginalName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
@@ -58,7 +58,7 @@ public class FileService {
         
         FileMetaData fileMetaData = FileMetaData.builder()
                                                 .fileName(fileName)
-                                                .description(metaDataRequestPart.getDescription())
+                                                .description(metaDataRequestPart.getFileDescription())
                                                 .owner(userWithId)
                                                 .size(file.getSize())
                                                 .publicFileFlag(metaDataRequestPart.getPublicFileFlag())

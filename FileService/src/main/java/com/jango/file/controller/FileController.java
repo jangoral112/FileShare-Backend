@@ -1,7 +1,7 @@
 package com.jango.file.controller;
 
 import com.jango.file.dto.FileMetaDataResponse;
-import com.jango.file.dto.UploadFileMetaDataRequestPart;
+import com.jango.file.dto.FileUploadMetadata;
 import com.jango.file.mapping.JsonStringToPOJOMapper;
 import com.jango.file.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,18 +24,18 @@ public class FileController {
     private FileService fileService;
 
     @PostMapping (consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public String uploadFile(@RequestPart("metadata") String metaDataRequestPart, 
+    public ResponseEntity<String> uploadFile(@RequestPart("metadata") String metaDataRequestPart, 
                              @RequestPart("file") MultipartFile file) {
         
-        UploadFileMetaDataRequestPart metaDataPart = JsonStringToPOJOMapper.mapToFileMetaDataRequestPart(metaDataRequestPart);
+        FileUploadMetadata metaDataPart = JsonStringToPOJOMapper.mapToFileMetaDataRequestPart(metaDataRequestPart);
         
         if(metaDataPart == null) {
-            return "Invalid request";
+            return ResponseEntity.status(400).body("Invalid file metadata"); // TODO exception
         }
         
         fileService.uploadFile(metaDataPart, file);
 
-        return "Successfully uploaded file";
+        return ResponseEntity.ok("Successfully uploaded file");
     }
 
     @GetMapping (produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE})

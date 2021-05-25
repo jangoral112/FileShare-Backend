@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UploadFileMetaDataRequestPart {
+public class FileUploadMetadata {
     
     private String ownerEmail;
     
-    private String description;
+    private String fileDescription;
     
     private String fileName;
     
