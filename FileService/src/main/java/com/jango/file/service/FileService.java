@@ -8,6 +8,7 @@ import com.jango.file.dto.UserDetailsWithIdResponse;
 import com.jango.file.entity.FileKey;
 import com.jango.file.entity.FileMetaData;
 import com.jango.file.entity.User;
+import com.jango.file.exception.UnauthorizedAccessToFileException;
 import com.jango.file.repository.FileKeyRepository;
 import com.jango.file.repository.FileMetaDataRepository;
 import com.jango.file.repository.FileStorageRepository;
@@ -98,16 +99,20 @@ public class FileService {
         return null;
     }
     
-    public FileMetadataResponse getFileMetaDataResponseByKey(String key) {
+    public FileMetadataResponse getFileMetadataByKey(String key, String token) {
         
-        FileMetaData fileMetaData = getFileMetaDataByKey(key);
+        FileMetaData fileMetaData = getFileMetadataByKey(key);
         
         if(fileMetaData == null) {
             return null;
         }
         
         User owner = fileMetaData.getOwner();
-        
+        Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(owner.getEmail(), token);
+
+        if(ownerOfToken == false && fileMetaData.getPublicFileFlag() == false) { // TODO if user is admin allow to get data
+            throw new UnauthorizedAccessToFileException("Unauthorized access to private file");
+        }
         
         return FileMetadataResponse.builder()
                                    .ownerEmail(owner.getEmail())
@@ -123,7 +128,7 @@ public class FileService {
     
     public boolean removeFile(String key) { // TODO secure if user is ower or admin
         
-        FileMetaData fileMetaData = getFileMetaDataByKey(key);
+        FileMetaData fileMetaData = getFileMetadataByKey(key);
         
         if(fileMetaData == null) {
             return false;
@@ -134,7 +139,7 @@ public class FileService {
         return fileStorageRepository.removeFile(key);
     }
     
-    private FileMetaData getFileMetaDataByKey(String key) {
+    private FileMetaData getFileMetadataByKey(String key) {
         
         Optional<FileKey> optionalFileKey = fileKeyRepository.findByKey(key);
         
@@ -152,7 +157,8 @@ public class FileService {
         return optionalFileMetaData.get();
     }
     
-    public List<FileMetadataResponse> getFileListByOwner(String ownerEmail, String token) {
+    public List<FileMetadataResponse> getFileMetadataListByOwner(String ownerEmail, String token) {
+
         Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(ownerEmail, token);
         
         UserDetailsWithIdResponse userDetails = userServiceClient.getUserDetailsByEmail(ownerEmail);
@@ -161,7 +167,7 @@ public class FileService {
                          .build();
         
         List<FileMetaData> filesMetaData;
-        
+
         if(ownerOfToken) {
           filesMetaData = fileMetaDataRepository.findAllByOwner(owner);
         } else {

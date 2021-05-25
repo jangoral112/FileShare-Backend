@@ -2,6 +2,7 @@ package com.jango.file.controller;
 
 import com.jango.file.dto.FileMetadataResponse;
 import com.jango.file.dto.FileUploadMetadata;
+import com.jango.file.exception.InvalidRequestException;
 import com.jango.file.mapping.JsonStringToPOJOMapper;
 import com.jango.file.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.security.InvalidAlgorithmParameterException;
 import java.util.List;
 
 @RestController 
@@ -30,7 +32,7 @@ public class FileController {
         FileUploadMetadata metaDataPart = JsonStringToPOJOMapper.mapToFileMetaDataRequestPart(metaDataRequestPart);
         
         if(metaDataPart == null) {
-            return ResponseEntity.status(400).body("Invalid file metadata"); // TODO exception
+            throw new InvalidRequestException("Metadata is in invalid format");
         }
         
         fileService.uploadFile(metaDataPart, file);
@@ -39,10 +41,11 @@ public class FileController {
     }
 
     @GetMapping (produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE})
-    public ResponseEntity<MultiValueMap<String, HttpEntity<?>>> downloadFile(@RequestParam("key") String key) {
+    public ResponseEntity<MultiValueMap<String, HttpEntity<?>>> downloadFile(@RequestParam("key") String key,
+                                                                             @RequestHeader("authorization") String authToken) {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
 
-        FileMetadataResponse fileMetaDataResponse = fileService.getFileMetaDataResponseByKey(key);
+        FileMetadataResponse fileMetaDataResponse = fileService.getFileMetadataByKey(key, authToken);
         ByteArrayResource byteArrayResource = fileService.downloadFile(key);
 
         builder.part("file_metadata", fileMetaDataResponse, MediaType.APPLICATION_JSON);
@@ -61,13 +64,21 @@ public class FileController {
         return "Failed to remove file";
     }
     
-    @GetMapping(path = "/list")
+    @GetMapping(path = "/meta-data")
     public ResponseEntity<List<FileMetadataResponse>> getFileListByOwner(@RequestParam(name = "ownerEmail") String ownerEmail,
                                                                          @RequestHeader("authorization") String authToken) {
         
-        List<FileMetadataResponse> response = fileService.getFileListByOwner(ownerEmail, authToken);
+        List<FileMetadataResponse> response = fileService.getFileMetadataListByOwner(ownerEmail, authToken);
         
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(path = "/meta-data")
+    public ResponseEntity<FileMetadataResponse> getFileMetaDataByKey(@RequestParam(name = "key") String key,
+                                                                     @RequestHeader("authorization") String authToken) {
+        FileMetadataResponse fileMetadataResponse = fileService.getFileMetadataByKey(key, authToken);
+
+        return ResponseEntity.ok(fileMetadataResponse);
     }
     
 }
