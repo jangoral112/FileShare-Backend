@@ -40,8 +40,8 @@ public class FileController {
         return ResponseEntity.ok("Successfully uploaded file");
     }
 
-    @GetMapping (produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE})
-    public ResponseEntity<MultiValueMap<String, HttpEntity<?>>> downloadFile(@RequestParam("key") String key,
+    @GetMapping (path = "/{key}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE})
+    public ResponseEntity<MultiValueMap<String, HttpEntity<?>>> downloadFile(@PathVariable("key") String key,
                                                                              @RequestHeader("authorization") String authToken) {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
 
@@ -54,8 +54,8 @@ public class FileController {
         return ResponseEntity.ok(builder.build());
     }
     
-    @DeleteMapping
-    public String removeFile(@RequestParam("key") String key) {
+    @DeleteMapping(path = "/{key}")
+    public String removeFile(@PathVariable("key") String key) {
         
         if(fileService.removeFile(key)) {
             return "Successfully removed file";
@@ -73,8 +73,8 @@ public class FileController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(path = "/meta-data")
-    public ResponseEntity<FileMetadataResponse> getFileMetaDataByKey(@RequestParam(name = "key") String key,
+    @GetMapping(path = "/{key}/meta-data")
+    public ResponseEntity<FileMetadataResponse> getFileMetaDataByKey(@PathVariable(name = "key") String key,
                                                                      @RequestHeader("authorization") String authToken) {
         FileMetadataResponse fileMetadataResponse = fileService.getFileMetadataByKey(key, authToken);
 
