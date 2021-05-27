@@ -6,9 +6,10 @@ import com.jango.file.dto.FileMetadataResponse;
 import com.jango.file.dto.FileUploadMetadata;
 import com.jango.file.dto.UserDetailsWithIdResponse;
 import com.jango.file.entity.FileKey;
-import com.jango.file.entity.FileMetaData;
+import com.jango.file.entity.FileMetadata;
 import com.jango.file.entity.User;
 import com.jango.file.exception.UnauthorizedAccessToFileException;
+import com.jango.file.mapping.FileMetadataMapper;
 import com.jango.file.repository.FileKeyRepository;
 import com.jango.file.repository.FileMetaDataRepository;
 import com.jango.file.repository.FileStorageRepository;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class FileService {
@@ -57,7 +59,7 @@ public class FileService {
                               .id(userDetails.getId())
                               .build();
         
-        FileMetaData fileMetaData = FileMetaData.builder()
+        FileMetadata fileMetaData = FileMetadata.builder()
                                                 .fileName(fileName)
                                                 .description(metaDataRequestPart.getFileDescription())
                                                 .owner(userWithId)
@@ -67,7 +69,7 @@ public class FileService {
                                                 .build();
 
         
-        FileMetaData savedMetaData = fileMetaDataRepository.save(fileMetaData);
+        FileMetadata savedMetaData = fileMetaDataRepository.save(fileMetaData);
         
         Optional<FileKey> optionalFileKey = fileKeyRepository.findById(savedMetaData.getKeyId());
         if(optionalFileKey.isEmpty()) {
@@ -101,7 +103,7 @@ public class FileService {
     
     public FileMetadataResponse getFileMetadataByKey(String key, String token) {
         
-        FileMetaData fileMetaData = getFileMetadataByKey(key);
+        FileMetadata fileMetaData = getFileMetadataByKey(key);
         
         if(fileMetaData == null) {
             return null;
@@ -128,7 +130,7 @@ public class FileService {
     
     public boolean removeFile(String key) { // TODO secure if user is ower or admin
         
-        FileMetaData fileMetaData = getFileMetadataByKey(key);
+        FileMetadata fileMetaData = getFileMetadataByKey(key);
         
         if(fileMetaData == null) {
             return false;
@@ -139,7 +141,7 @@ public class FileService {
         return fileStorageRepository.removeFile(key);
     }
     
-    private FileMetaData getFileMetadataByKey(String key) {
+    private FileMetadata getFileMetadataByKey(String key) {
         
         Optional<FileKey> optionalFileKey = fileKeyRepository.findByKey(key);
         
@@ -149,7 +151,7 @@ public class FileService {
 
         FileKey fileKey = optionalFileKey.get();
 
-        Optional<FileMetaData> optionalFileMetaData = fileMetaDataRepository.findByKeyId(fileKey.getId());
+        Optional<FileMetadata> optionalFileMetaData = fileMetaDataRepository.findByKeyId(fileKey.getId());
         if(optionalFileMetaData.isEmpty()) {
             return null;
         }
@@ -157,42 +159,40 @@ public class FileService {
         return optionalFileMetaData.get();
     }
     
-    public List<FileMetadataResponse> getFileMetadataListByOwner(String ownerEmail, String token) {
+    public List<FileMetadataResponse> getFileMetadataList(String ownerEmail, Boolean privateFiles, String token) { // TODO allow admin to view all files both public and private
 
-        Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(ownerEmail, token);
-        
-        UserDetailsWithIdResponse userDetails = userServiceClient.getUserDetailsByEmail(ownerEmail);
-        User owner = User.builder()
-                         .id(userDetails.getId())
-                         .build();
-        
-        List<FileMetaData> filesMetaData;
+        List<FileMetadata> filesMetaData;
 
-        if(ownerOfToken) {
-          filesMetaData = fileMetaDataRepository.findAllByOwner(owner);
+        if(ownerEmail != null) {
+
+            UserDetailsWithIdResponse userDetails = userServiceClient.getUserDetailsByEmail(ownerEmail);
+            User owner = User.builder()
+                    .id(userDetails.getId())
+                    .build();
+
+            if(privateFiles != null && privateFiles == true) {
+                Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(ownerEmail, token);
+
+                if(ownerOfToken == false) {
+                    throw new UnauthorizedAccessToFileException("Unauthorized access to private files");
+                }
+                filesMetaData = fileMetaDataRepository.findAllByOwner(owner);
+            } else {
+                filesMetaData = fileMetaDataRepository.findAllByOwnerAndPublic(owner);
+            }
         } else {
-            filesMetaData = fileMetaDataRepository.findAllByOwnerAndPublic(owner);
+            filesMetaData = fileMetaDataRepository.findAllPublic();
         }
-        
-        List<FileMetadataResponse> fileMetadataResponse = new ArrayList<>();
-        
-        for(FileMetaData fileMetaData: filesMetaData) {
-            
-            FileKey fileKey = fileKeyRepository.getOne(fileMetaData.getKeyId());
-            
-            FileMetadataResponse response = FileMetadataResponse.builder()
-                                                                .ownerEmail(userDetails.getEmail())
-                                                                .ownerUserName(userDetails.getUsername())
-                                                                .fileName(fileMetaData.getFileName())
-                                                                .fileDescription(fileMetaData.getDescription())
-                                                                .fileKey(fileKey.getKey())
-                                                                .publicFileFlag(fileMetaData.getPublicFileFlag())
-                                                                .uploadTimestamp(fileMetaData.getUploadTimestamp())
-                                                                .size(fileMetaData.getSize())
-                                                                .build();
-            fileMetadataResponse.add(response);
-        }
-        
-        return fileMetadataResponse;
+
+        return filesMetaData.stream().map(
+                (fileMetadata) -> {
+                    FileKey fileKey = fileKeyRepository.getOne(fileMetadata.getKeyId()); // TODO refactor FileMetadata entity to have FileKey field
+                    return FileMetadataMapper.fileMetadataToResponse(fileMetadata, fileKey.getKey());
+                })
+                .collect(Collectors.toList());
     }
+
+//    private List<FileMetaData> getAllPublicFiles() {
+//
+//    }
 }

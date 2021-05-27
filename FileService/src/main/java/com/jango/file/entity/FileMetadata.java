@@ -16,7 +16,7 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class FileMetaData {
+public class FileMetadata {
 
     @Id
     @Column(name = "id")
