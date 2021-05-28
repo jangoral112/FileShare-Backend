@@ -70,7 +70,7 @@ public class UserService {
     public UserDetailsWithIdResponse getUserDetailsByEmail(String email) { // TODO secure
         Optional<User> optionalUser = userRepository.getUserByEmail(email);
         if(optionalUser.isEmpty()) {
-            return null;
+            throw new UserAlreadyExistException("User with email: " + email + " does not exist");
         }
         User user = optionalUser.get();
         
@@ -86,7 +86,7 @@ public class UserService {
     public UserDetailsWithIdResponse getUserDetailsById(Long userId) {
         Optional<User> optionalUser = userRepository.findById(userId);
         if(optionalUser.isEmpty()) {
-            return null;
+            throw new UserAlreadyExistException("User with id: " + userId + " does not exist");
         }
         User user = optionalUser.get();
         
