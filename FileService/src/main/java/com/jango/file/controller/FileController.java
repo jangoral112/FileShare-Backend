@@ -7,6 +7,7 @@ import com.jango.file.mapping.JsonStringToPOJOMapper;
 import com.jango.file.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,18 +41,13 @@ public class FileController {
         return ResponseEntity.ok("Successfully uploaded file");
     }
 
-    @GetMapping (produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE })
-    public ResponseEntity<MultiValueMap<String, HttpEntity<?>>> downloadFile(@RequestParam("key") String key,
-                                                                             @RequestHeader("authorization") String authToken) {
-        MultipartBodyBuilder builder = new MultipartBodyBuilder();
+    @GetMapping(produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<byte[]> downloadFile(@RequestParam("key") String key,
+                                               @RequestHeader("authorization") String authToken) {
 
-        FileMetadataResponse fileMetaDataResponse = fileService.getFileMetadataByKey(key, authToken);
-        ByteArrayResource byteArrayResource = fileService.downloadFile(key);
+        byte[] fileAsBytes = fileService.downloadFile(key, authToken);
 
-        builder.part("file_metadata", fileMetaDataResponse, MediaType.APPLICATION_JSON);
-        builder.part("file_content", byteArrayResource.getByteArray(), MediaType.APPLICATION_OCTET_STREAM); // TODO replace byte array resource with byte[]
-
-        return ResponseEntity.ok(builder.build());
+        return ResponseEntity.ok(fileAsBytes);
     }
     
     @DeleteMapping

@@ -8,6 +8,7 @@ import com.jango.file.dto.UserDetailsWithIdResponse;
 import com.jango.file.entity.FileKey;
 import com.jango.file.entity.FileMetadata;
 import com.jango.file.entity.User;
+import com.jango.file.exception.FileDownloadException;
 import com.jango.file.exception.FileNotFoundException;
 import com.jango.file.exception.UnauthorizedAccessToFileException;
 import com.jango.file.mapping.FileMetadataMapper;
@@ -92,14 +93,25 @@ public class FileService {
         return true;
     }
     
-    public ByteArrayResource downloadFile(String key) {
-        try {
-            byte[] fileContent = fileStorageRepository.downloadFile(key);
-            return new ByteArrayResource(fileContent);
-        } catch (Exception e) {
-            e.printStackTrace();
+    public byte[] downloadFile(String key, String authToken) {
+
+        FileMetadata fileMetaData = getFileMetadataByKey(key);
+
+        if(fileMetaData == null) {
+            throw new FileNotFoundException("File with given key does not exist!");
         }
-        return null;
+
+        Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(fileMetaData.getOwner().getEmail(), authToken);
+
+        if(ownerOfToken == false && fileMetaData.getPublicFileFlag() == false) { // TODO if user is admin allow to download
+            throw new UnauthorizedAccessToFileException("Unauthorized access to private file");
+        }
+
+        try {
+            return fileStorageRepository.downloadFile(key);
+        } catch (Exception e) {
+            throw new FileDownloadException(e.getMessage());
+        }
     }
     
     public FileMetadataResponse getFileMetadataByKey(String key, String authToken) {
@@ -136,6 +148,7 @@ public class FileService {
         if(fileMetaData == null) {
             throw new FileNotFoundException("File with given key does not exist!");
         }
+
         Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(fileMetaData.getOwner().getEmail(), authToken);
 
         if(ownerOfToken == false) { // TODO if user is admin allow to remove file
