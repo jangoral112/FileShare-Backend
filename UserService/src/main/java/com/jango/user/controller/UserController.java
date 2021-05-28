@@ -1,6 +1,7 @@
 package com.jango.user.controller;
 
 import com.jango.user.dto.CreateUserRequest;
+import com.jango.user.dto.UserDetailsResponse;
 import com.jango.user.dto.UserDetailsWithIdResponse;
 import com.jango.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,16 +25,22 @@ public class UserController {
         responseBody.put("message", responseMessage);
         return ResponseEntity.ok(responseBody);
     }
-    
+
+    @GetMapping
+    public ResponseEntity<UserDetailsResponse> getUserDetails(@RequestParam("email") String email) {
+        UserDetailsResponse userDetailsResponse = userService.getUserDetailsByEmail(email);
+        return ResponseEntity.ok(userDetailsResponse);
+    }
+
     @GetMapping(value = "/private/details", params = {"email"})
     public ResponseEntity<UserDetailsWithIdResponse> getUserDetailsByEmail(@RequestParam(value = "email") String email) {
-        UserDetailsWithIdResponse response = userService.getUserDetailsByEmail(email);
+        UserDetailsWithIdResponse response = userService.getUserDetailsWithIdByEmail(email);
         return ResponseEntity.ok(response);
     }
     
     @GetMapping(value = "/private/details", params = {"id"})
     public ResponseEntity<UserDetailsWithIdResponse> getUserDetailsById(@RequestParam(value = "userId") Long userId) {
-        UserDetailsWithIdResponse response = userService.getUserDetailsById(userId);
+        UserDetailsWithIdResponse response = userService.getUserDetailsWithIdById(userId);
         return ResponseEntity.ok(response);
     }
 }

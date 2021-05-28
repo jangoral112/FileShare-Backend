@@ -1,11 +1,13 @@
 package com.jango.user.service;
 
 import com.jango.user.dto.CreateUserRequest;
+import com.jango.user.dto.UserDetailsResponse;
 import com.jango.user.dto.UserDetailsWithIdResponse;
 import com.jango.user.entity.Role;
 import com.jango.user.entity.User;
 import com.jango.user.enumeration.Roles;
 import com.jango.user.exception.UserAlreadyExistException;
+import com.jango.user.exception.UserDoesNotExistException;
 import com.jango.user.repository.RoleRepository;
 import com.jango.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +35,7 @@ public class UserService {
 
     public String createUser(CreateUserRequest createUserRequest) {
 
-        if(userRepository.existsByName(createUserRequest.getUsername())) {
+        if(userRepository.existsByUsername(createUserRequest.getUsername())) {
             throw new UserAlreadyExistException("User with given username already exist!");
         }
         
@@ -54,7 +56,7 @@ public class UserService {
         }
         
         User user = User.builder()
-                        .name(createUserRequest.getUsername())
+                        .username(createUserRequest.getUsername())
                         .description(createUserRequest.getDescription())
                         .email(createUserRequest.getEmail())
                         .password(passwordEncoder.encode(createUserRequest.getPassword()))
@@ -66,16 +68,31 @@ public class UserService {
 
         return "Successfully created new user!";
     }
-    
-    public UserDetailsWithIdResponse getUserDetailsByEmail(String email) { // TODO secure
+
+    public UserDetailsResponse getUserDetailsByEmail(String email) {
         Optional<User> optionalUser = userRepository.getUserByEmail(email);
         if(optionalUser.isEmpty()) {
-            throw new UserAlreadyExistException("User with email: " + email + " does not exist");
+            throw new UserDoesNotExistException("User with email: " + email + " does not exist");
+        }
+        User user = optionalUser.get();
+
+        return UserDetailsResponse.builder()
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .description(user.getDescription())
+                .creationDate(user.getCreationDate())
+                .build();
+    }
+    
+    public UserDetailsWithIdResponse getUserDetailsWithIdByEmail(String email) { // TODO secure
+        Optional<User> optionalUser = userRepository.getUserByEmail(email);
+        if(optionalUser.isEmpty()) {
+            throw new UserDoesNotExistException("User with email: " + email + " does not exist");
         }
         User user = optionalUser.get();
         
         return UserDetailsWithIdResponse.builder()
-                                        .username(user.getName())
+                                        .username(user.getUsername())
                                         .email(user.getEmail())
                                         .description(user.getDescription())
                                         .creationDate(user.getCreationDate())
@@ -83,15 +100,15 @@ public class UserService {
                                         .build();
     }
     
-    public UserDetailsWithIdResponse getUserDetailsById(Long userId) {
+    public UserDetailsWithIdResponse getUserDetailsWithIdById(Long userId) {
         Optional<User> optionalUser = userRepository.findById(userId);
         if(optionalUser.isEmpty()) {
-            throw new UserAlreadyExistException("User with id: " + userId + " does not exist");
+            throw new UserDoesNotExistException("User with id: " + userId + " does not exist");
         }
         User user = optionalUser.get();
         
         return UserDetailsWithIdResponse.builder()
-                                        .username(user.getName())
+                                        .username(user.getUsername())
                                         .email(user.getEmail())
                                         .description(user.getDescription())
                                         .creationDate(user.getCreationDate())

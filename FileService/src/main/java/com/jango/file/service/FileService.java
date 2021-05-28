@@ -16,14 +16,12 @@ import com.jango.file.repository.FileKeyRepository;
 import com.jango.file.repository.FileMetaDataRepository;
 import com.jango.file.repository.FileStorageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -72,15 +70,15 @@ public class FileService {
 
         
         FileMetadata savedMetaData = fileMetaDataRepository.save(fileMetaData);
-        
+
         Optional<FileKey> optionalFileKey = fileKeyRepository.findById(savedMetaData.getKeyId());
         if(optionalFileKey.isEmpty()) {
             fileMetaDataRepository.delete(savedMetaData);
             return false;
         }
-        
+
         FileKey fileKey = optionalFileKey.get();
-        
+
         try {
             fileStorageRepository.uploadFile(file, fileKey.getKey());
         } catch (Exception e) {
@@ -113,7 +111,7 @@ public class FileService {
             throw new FileDownloadException(e.getMessage());
         }
     }
-    
+
     public FileMetadataResponse getFileMetadataByKey(String key, String authToken) {
         
         FileMetadata fileMetaData = getFileMetadataByKey(key);
@@ -131,7 +129,7 @@ public class FileService {
         
         return FileMetadataResponse.builder()
                                    .ownerEmail(owner.getEmail())
-                                   .ownerUserName(owner.getName())
+                                   .ownerUserName(owner.getUsername())
                                    .fileName(fileMetaData.getFileName())
                                    .fileDescription(fileMetaData.getDescription())
                                    .fileKey(key)
