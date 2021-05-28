@@ -15,7 +15,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.security.InvalidAlgorithmParameterException;
 import java.util.List;
 
 @RestController 
@@ -27,7 +26,7 @@ public class FileController {
 
     @PostMapping (consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<String> uploadFile(@RequestPart("metadata") String metaDataRequestPart, 
-                             @RequestPart("file") MultipartFile file) {
+                                             @RequestPart("file") MultipartFile file) {
         
         FileUploadMetadata metaDataPart = JsonStringToPOJOMapper.mapToFileMetaDataRequestPart(metaDataRequestPart);
         
@@ -40,8 +39,8 @@ public class FileController {
         return ResponseEntity.ok("Successfully uploaded file");
     }
 
-    @GetMapping (path = "/{key}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE})
-    public ResponseEntity<MultiValueMap<String, HttpEntity<?>>> downloadFile(@PathVariable("key") String key,
+    @GetMapping (produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE })
+    public ResponseEntity<MultiValueMap<String, HttpEntity<?>>> downloadFile(@RequestParam("key") String key,
                                                                              @RequestHeader("authorization") String authToken) {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
 
@@ -54,8 +53,8 @@ public class FileController {
         return ResponseEntity.ok(builder.build());
     }
     
-    @DeleteMapping(path = "/{key}")
-    public String removeFile(@PathVariable("key") String key) {
+    @DeleteMapping()
+    public String removeFile(@RequestParam("key") String key) {
         
         if(fileService.removeFile(key)) {
             return "Successfully removed file";
@@ -64,16 +63,17 @@ public class FileController {
         return "Failed to remove file";
     }
     
-    @GetMapping(path = "/meta-data")
-    public ResponseEntity<List<FileMetadataResponse>> getFileListByOwner(@RequestParam(name = "ownerEmail") String ownerEmail,
-                                                                         @RequestHeader("authorization") String authToken) {
-        
-        List<FileMetadataResponse> response = fileService.getFileMetadataListByOwner(ownerEmail, authToken);
+    @GetMapping(path = "/metadata")
+    public ResponseEntity<List<FileMetadataResponse>> getFileMetadataList(@RequestParam(name = "ownerEmail", required = false) String ownerEmail,
+                                                                          @RequestParam(name = "privateFiles", required = false) Boolean privateFiles,
+                                                                          @RequestHeader("authorization") String authToken) {
+
+        List<FileMetadataResponse> response = fileService.getFileMetadataList(ownerEmail, privateFiles,authToken);
         
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(path = "/{key}/meta-data")
+    @GetMapping(path = "/{key}/metadata")
     public ResponseEntity<FileMetadataResponse> getFileMetaDataByKey(@PathVariable(name = "key") String key,
                                                                      @RequestHeader("authorization") String authToken) {
         FileMetadataResponse fileMetadataResponse = fileService.getFileMetadataByKey(key, authToken);

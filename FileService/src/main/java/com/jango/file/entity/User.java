@@ -48,5 +48,5 @@ public class User {
     private Set<Role> roles = new HashSet<>();
     
     @OneToMany(mappedBy = "owner")
-    private List<FileMetaData> filesMetaData;
+    private List<FileMetadata> filesMetaData;
 }
