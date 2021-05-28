@@ -8,6 +8,7 @@ import com.jango.file.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;
@@ -53,14 +54,15 @@ public class FileController {
         return ResponseEntity.ok(builder.build());
     }
     
-    @DeleteMapping()
-    public String removeFile(@RequestParam("key") String key) {
+    @DeleteMapping
+    public ResponseEntity<String> deleteFile(@RequestParam("key") String key,
+                                             @RequestHeader("authorization") String authToken) {
         
-        if(fileService.removeFile(key)) {
-            return "Successfully removed file";
+        if(fileService.deleteFile(key, authToken)) {
+            return ResponseEntity.ok("Successfully removed file");
         }
         
-        return "Failed to remove file";
+        return new ResponseEntity<>("Failed to remove file", HttpStatus.INTERNAL_SERVER_ERROR);
     }
     
     @GetMapping(path = "/metadata")

@@ -5,7 +5,8 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka
-      
+
+
 spring:
   application:
     name: file-service
@@ -38,3 +39,9 @@ logging:
       amazonaws:
         util:
           EC2MetadataUtils: error
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 80000
+        readTimeout: 80000

@@ -8,6 +8,7 @@ import com.jango.file.dto.UserDetailsWithIdResponse;
 import com.jango.file.entity.FileKey;
 import com.jango.file.entity.FileMetadata;
 import com.jango.file.entity.User;
+import com.jango.file.exception.FileNotFoundException;
 import com.jango.file.exception.UnauthorizedAccessToFileException;
 import com.jango.file.mapping.FileMetadataMapper;
 import com.jango.file.repository.FileKeyRepository;
@@ -101,16 +102,16 @@ public class FileService {
         return null;
     }
     
-    public FileMetadataResponse getFileMetadataByKey(String key, String token) {
+    public FileMetadataResponse getFileMetadataByKey(String key, String authToken) {
         
         FileMetadata fileMetaData = getFileMetadataByKey(key);
         
         if(fileMetaData == null) {
-            return null;
+            throw new FileNotFoundException("File with given key does not exist!");
         }
         
         User owner = fileMetaData.getOwner();
-        Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(owner.getEmail(), token);
+        Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(owner.getEmail(), authToken);
 
         if(ownerOfToken == false && fileMetaData.getPublicFileFlag() == false) { // TODO if user is admin allow to get data
             throw new UnauthorizedAccessToFileException("Unauthorized access to private file");
@@ -128,12 +129,17 @@ public class FileService {
                                    .build();
     }
     
-    public boolean removeFile(String key) { // TODO secure if user is ower or admin
+    public boolean deleteFile(String key, String authToken) {
         
         FileMetadata fileMetaData = getFileMetadataByKey(key);
         
         if(fileMetaData == null) {
-            return false;
+            throw new FileNotFoundException("File with given key does not exist!");
+        }
+        Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(fileMetaData.getOwner().getEmail(), authToken);
+
+        if(ownerOfToken == false) { // TODO if user is admin allow to remove file
+            throw new UnauthorizedAccessToFileException("Unauthorized deletion of file");
         }
         
         fileMetaDataRepository.delete(fileMetaData);
