@@ -16,9 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -114,5 +112,9 @@ public class UserService {
                                         .creationDate(user.getCreationDate())
                                         .id(user.getId())
                                         .build();
+    }
+
+    public List<UserDetailsResponse> getUsersDetailsSortedByPhraseFit(String phrase) {
+        throw new UnsupportedOperationException("Not implemented, yet");
     }
 }

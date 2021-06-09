@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -26,10 +27,18 @@ public class UserController {
         return ResponseEntity.ok(responseBody);
     }
 
-    @GetMapping
-    public ResponseEntity<UserDetailsResponse> getUserDetails(@RequestParam("email") String email) {
+    @GetMapping(path = "{email}")
+    public ResponseEntity<UserDetailsResponse> getUserDetails(@PathVariable("email") String email) {
         UserDetailsResponse userDetailsResponse = userService.getUserDetailsByEmail(email);
         return ResponseEntity.ok(userDetailsResponse);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserDetailsResponse>> getUsersDetailsSortedByPhraseFit(
+                                                                        @RequestParam(name = "phrase") String phrase) {
+        List<UserDetailsResponse> response = userService.getUsersDetailsSortedByPhraseFit(phrase);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping(value = "/private/details", params = {"email"})
