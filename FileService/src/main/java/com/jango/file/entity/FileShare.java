@@ -22,18 +22,15 @@ public class FileShare {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name="id")
-    @Column(name="owner_id")
+    @JoinColumn(name="owner_id")
     private User owner;
 
     @ManyToOne
-    @JoinColumn(name="id")
-    @Column(name="recipient_id")
+    @JoinColumn(name="recipient_id")
     private User recipient;
 
     @ManyToOne
-    @JoinColumn(name="id")
-    @Column(name="file_id")
+    @JoinColumn(name="file_id")
     private FileMetadata fileMetadata;
 
     @Column(name = "share_date")
