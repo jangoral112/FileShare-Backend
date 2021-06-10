@@ -208,8 +208,4 @@ public class FileService {
                 })
                 .collect(Collectors.toList());
     }
-
-//    private List<FileMetaData> getAllPublicFiles() {
-//
-//    }
 }

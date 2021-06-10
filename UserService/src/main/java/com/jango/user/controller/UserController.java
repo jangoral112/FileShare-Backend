@@ -36,6 +36,7 @@ public class UserController {
     @GetMapping
     public ResponseEntity<List<UserDetailsResponse>> getUsersDetailsSortedByPhraseFit(
                                                                         @RequestParam(name = "phrase") String phrase) {
+
         List<UserDetailsResponse> response = userService.getUsersDetailsSortedByPhraseFit(phrase);
 
         return ResponseEntity.ok(response);

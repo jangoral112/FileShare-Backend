@@ -31,6 +31,8 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    final private int DEFAULT_USER_SEARCH_LIMIT = 20;
+
     public String createUser(CreateUserRequest createUserRequest) {
 
         if(userRepository.existsByUsername(createUserRequest.getUsername())) {
@@ -115,6 +117,21 @@ public class UserService {
     }
 
     public List<UserDetailsResponse> getUsersDetailsSortedByPhraseFit(String phrase) {
-        throw new UnsupportedOperationException("Not implemented, yet");
+        List<User> users = userRepository.findUsersByUsernameByPhrase(phrase, DEFAULT_USER_SEARCH_LIMIT);
+
+        List<UserDetailsResponse> usersDetailsResponse = new ArrayList<>();
+
+        for(User user: users) {
+            UserDetailsResponse userDetailsResponse = UserDetailsResponse.builder()
+                    .username(user.getUsername())
+                    .email(user.getEmail())
+                    .description(user.getDescription())
+                    .creationDate(user.getCreationDate())
+                    .build();
+
+            usersDetailsResponse.add(userDetailsResponse);
+        }
+
+        return usersDetailsResponse;
     }
 }
