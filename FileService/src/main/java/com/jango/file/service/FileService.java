@@ -10,7 +10,7 @@ import com.jango.file.entity.FileMetadata;
 import com.jango.file.entity.User;
 import com.jango.file.exception.FileDownloadException;
 import com.jango.file.exception.FileNotFoundException;
-import com.jango.file.exception.UnauthorizedAccessToFileException;
+import com.jango.file.exception.UnauthorizedAccessException;
 import com.jango.file.mapping.FileMetadataMapper;
 import com.jango.file.repository.FileKeyRepository;
 import com.jango.file.repository.FileMetaDataRepository;
@@ -102,7 +102,7 @@ public class FileService {
         Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(fileMetaData.getOwner().getEmail(), authToken);
 
         if(ownerOfToken == false && fileMetaData.getPublicFileFlag() == false) { // TODO if user is admin allow to download
-            throw new UnauthorizedAccessToFileException("Unauthorized access to private file");
+            throw new UnauthorizedAccessException("Unauthorized access to private file");
         }
 
         try {
@@ -114,28 +114,28 @@ public class FileService {
 
     public FileMetadataResponse getFileMetadataByKey(String key, String authToken) {
         
-        FileMetadata fileMetaData = getFileMetadataByKey(key);
+        FileMetadata fileMetadata = getFileMetadataByKey(key);
         
-        if(fileMetaData == null) {
+        if(fileMetadata == null) {
             throw new FileNotFoundException("File with given key does not exist!");
         }
         
-        User owner = fileMetaData.getOwner();
+        User owner = fileMetadata.getOwner();
         Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(owner.getEmail(), authToken);
 
-        if(ownerOfToken == false && fileMetaData.getPublicFileFlag() == false) { // TODO if user is admin allow to get data
-            throw new UnauthorizedAccessToFileException("Unauthorized access to private file");
+        if(ownerOfToken == false && fileMetadata.getPublicFileFlag() == false) { // TODO if user is admin allow to get data
+            throw new UnauthorizedAccessException("Unauthorized access to private file");
         }
         
         return FileMetadataResponse.builder()
                                    .ownerEmail(owner.getEmail())
                                    .ownerUserName(owner.getUsername())
-                                   .fileName(fileMetaData.getFileName())
-                                   .fileDescription(fileMetaData.getDescription())
+                                   .fileName(fileMetadata.getFileName())
+                                   .fileDescription(fileMetadata.getDescription())
                                    .fileKey(key)
-                                   .uploadTimestamp(fileMetaData.getUploadTimestamp())
-                                   .publicFileFlag(fileMetaData.getPublicFileFlag())
-                                   .size(fileMetaData.getSize())
+                                   .uploadTimestamp(fileMetadata.getUploadTimestamp())
+                                   .publicFileFlag(fileMetadata.getPublicFileFlag())
+                                   .size(fileMetadata.getSize())
                                    .build();
     }
     
@@ -150,7 +150,7 @@ public class FileService {
         Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(fileMetaData.getOwner().getEmail(), authToken);
 
         if(ownerOfToken == false) { // TODO if user is admin allow to remove file
-            throw new UnauthorizedAccessToFileException("Unauthorized deletion of file");
+            throw new UnauthorizedAccessException("Unauthorized deletion of file");
         }
         
         fileMetaDataRepository.delete(fileMetaData);
@@ -191,7 +191,7 @@ public class FileService {
                 Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(ownerEmail, token);
 
                 if(ownerOfToken == false) {
-                    throw new UnauthorizedAccessToFileException("Unauthorized access to private files");
+                    throw new UnauthorizedAccessException("Unauthorized access to private files");
                 }
                 filesMetaData = fileMetaDataRepository.findAllByOwner(owner);
             } else {

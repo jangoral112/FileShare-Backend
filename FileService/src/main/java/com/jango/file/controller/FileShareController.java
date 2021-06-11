@@ -1,13 +1,13 @@
 package com.jango.file.controller;
 
 import com.jango.file.dto.FileShareRequest;
+import com.jango.file.dto.ReceiptedFileMetadataResponse;
 import com.jango.file.service.FileShareService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/file/share")
@@ -23,4 +23,15 @@ public class FileShareController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping
+    public ResponseEntity<List<ReceiptedFileMetadataResponse>> getReceiptedFilesMetadata(
+                                            @RequestParam(name = "recipientEmail") String recipientEmail,
+                                            @RequestHeader("authorization") String authToken) {
+
+        List<ReceiptedFileMetadataResponse> response = fileShareService.getReceiptedFilesMetadata(recipientEmail,
+                                                                                                  authToken);
+        return ResponseEntity.ok(response);
+    }
+
 }

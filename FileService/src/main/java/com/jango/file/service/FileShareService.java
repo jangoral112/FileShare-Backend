@@ -1,13 +1,18 @@
 package com.jango.file.service;
 
+import com.jango.file.client.AuthServiceClient;
 import com.jango.file.client.UserServiceClient;
+import com.jango.file.dto.FileMetadataResponse;
 import com.jango.file.dto.FileShareRequest;
+import com.jango.file.dto.ReceiptedFileMetadataResponse;
 import com.jango.file.dto.UserDetailsWithIdResponse;
 import com.jango.file.entity.FileKey;
 import com.jango.file.entity.FileMetadata;
 import com.jango.file.entity.FileShare;
 import com.jango.file.entity.User;
+import com.jango.file.exception.FileKeyDoesNotExistException;
 import com.jango.file.exception.FileNotFoundException;
+import com.jango.file.exception.UnauthorizedAccessException;
 import com.jango.file.exception.UserIsNotFileOwnerException;
 import com.jango.file.repository.FileKeyRepository;
 import com.jango.file.repository.FileMetaDataRepository;
@@ -17,6 +22,8 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -24,6 +31,9 @@ public class FileShareService {
 
     @Autowired
     private UserServiceClient userServiceClient;
+
+    @Autowired
+    private AuthServiceClient authServiceClient;
 
     @Autowired
     private FileMetaDataRepository fileMetaDataRepository;
@@ -80,5 +90,54 @@ public class FileShareService {
         }
 
         return optionalFileMetadata.get();
+    }
+
+    public List<ReceiptedFileMetadataResponse> getReceiptedFilesMetadata(String recipientEmail, String authToken) {
+
+        Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(recipientEmail, authToken);
+
+        if(ownerOfToken == false) { // TODO if user is admin allow to get
+            throw new UnauthorizedAccessException("Unauthorized access to receipted files list");
+        }
+
+        UserDetailsWithIdResponse recipientDetails = userServiceClient.getUserDetailsByEmail(recipientEmail);
+        User recipient = User.builder()
+                .id(recipientDetails.getId())
+                .build();
+
+        List<FileShare> receiptedFileShares = fileShareRepository.findAllByRecipient(recipient);
+
+        List<ReceiptedFileMetadataResponse> response = new ArrayList<>();
+
+        for(FileShare fileShare: receiptedFileShares) {
+
+            FileMetadata fileMetadata = fileShare.getFileMetadata();
+
+            Optional<FileKey> optionalFileKey = fileKeyRepository.findById(fileMetadata.getKeyId());
+            if(optionalFileKey.isEmpty()) {
+                throw new FileKeyDoesNotExistException("File key for given file could not be found");
+            }
+
+            FileMetadataResponse fileMetadataResponse = FileMetadataResponse.builder()
+                    .ownerEmail(fileMetadata.getOwner().getEmail())
+                    .ownerUserName(fileMetadata.getOwner().getUsername())
+                    .fileName(fileMetadata.getFileName())
+                    .fileDescription(fileMetadata.getDescription())
+                    .fileKey(optionalFileKey.get().getKey())
+                    .uploadTimestamp(fileMetadata.getUploadTimestamp())
+                    .publicFileFlag(fileMetadata.getPublicFileFlag())
+                    .size(fileMetadata.getSize())
+                    .build();
+
+            ReceiptedFileMetadataResponse receiptedFileMetadataResponse = ReceiptedFileMetadataResponse.builder()
+                    .fileMetadataResponse(fileMetadataResponse)
+                    .recipientEmail(recipientEmail)
+                    .shareTimestamp(fileShare.getShareDate())
+                    .build();
+
+            response.add(receiptedFileMetadataResponse);
+        }
+
+        return response;
     }
 }
