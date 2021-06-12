@@ -15,6 +15,8 @@ public class FileShareWithMetadataResponse {
 
     private String recipientEmail;
 
+    private String recipientUsername;
+
     private Timestamp shareTimestamp;
 
     private FileMetadataResponse fileMetadataResponse;

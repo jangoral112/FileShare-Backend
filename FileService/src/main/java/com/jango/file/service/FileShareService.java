@@ -132,6 +132,7 @@ public class FileShareService {
             FileShareWithMetadataResponse fileShareWithMetadataResponse = FileShareWithMetadataResponse.builder()
                     .fileMetadataResponse(fileMetadataResponse)
                     .recipientEmail(recipientEmail)
+                    .recipientUsername(fileShare.getRecipient().getUsername())
                     .shareTimestamp(fileShare.getShareDate())
                     .build();
 
@@ -181,6 +182,7 @@ public class FileShareService {
             FileShareWithMetadataResponse fileShareWithMetadataResponse = FileShareWithMetadataResponse.builder()
                     .fileMetadataResponse(fileMetadataResponse)
                     .recipientEmail(fileShare.getRecipient().getEmail())
+                    .recipientUsername(fileShare.getRecipient().getUsername())
                     .shareTimestamp(fileShare.getShareDate())
                     .build();
 
