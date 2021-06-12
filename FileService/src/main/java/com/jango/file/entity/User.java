@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -46,7 +47,8 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles = new HashSet<>();
-    
+
+    @Lazy
     @OneToMany(mappedBy = "owner")
-    private List<FileMetadata> filesMetaData;
+    private List<FileMetadata> ownedFilesMetadata;
 }
