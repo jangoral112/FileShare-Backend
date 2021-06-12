@@ -4,7 +4,7 @@ import com.jango.file.client.AuthServiceClient;
 import com.jango.file.client.UserServiceClient;
 import com.jango.file.dto.FileMetadataResponse;
 import com.jango.file.dto.FileShareRequest;
-import com.jango.file.dto.ReceiptedFileMetadataResponse;
+import com.jango.file.dto.FileShareWithMetadataResponse;
 import com.jango.file.dto.UserDetailsWithIdResponse;
 import com.jango.file.entity.FileKey;
 import com.jango.file.entity.FileMetadata;
@@ -92,7 +92,7 @@ public class FileShareService {
         return optionalFileMetadata.get();
     }
 
-    public List<ReceiptedFileMetadataResponse> getReceiptedFilesMetadata(String recipientEmail, String authToken) {
+    public List<FileShareWithMetadataResponse> getReceiptedFilesMetadata(String recipientEmail, String authToken) {
 
         Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(recipientEmail, authToken);
 
@@ -107,7 +107,7 @@ public class FileShareService {
 
         List<FileShare> receiptedFileShares = fileShareRepository.findAllByRecipient(recipient);
 
-        List<ReceiptedFileMetadataResponse> response = new ArrayList<>();
+        List<FileShareWithMetadataResponse> response = new ArrayList<>();
 
         for(FileShare fileShare: receiptedFileShares) {
 
@@ -129,13 +129,62 @@ public class FileShareService {
                     .size(fileMetadata.getSize())
                     .build();
 
-            ReceiptedFileMetadataResponse receiptedFileMetadataResponse = ReceiptedFileMetadataResponse.builder()
+            FileShareWithMetadataResponse fileShareWithMetadataResponse = FileShareWithMetadataResponse.builder()
                     .fileMetadataResponse(fileMetadataResponse)
                     .recipientEmail(recipientEmail)
                     .shareTimestamp(fileShare.getShareDate())
                     .build();
 
-            response.add(receiptedFileMetadataResponse);
+            response.add(fileShareWithMetadataResponse);
+        }
+
+        return response;
+    }
+
+    public List<FileShareWithMetadataResponse> getSharesWithFilesMetadata(String ownerEmail, String authToken) {
+
+        Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(ownerEmail, authToken);
+
+        if(ownerOfToken == false) { // TODO if user is admin allow to get
+            throw new UnauthorizedAccessException("Unauthorized access to receipted files list");
+        }
+
+        UserDetailsWithIdResponse ownerDetails = userServiceClient.getUserDetailsByEmail(ownerEmail);
+        User owner = User.builder()
+                .id(ownerDetails.getId())
+                .build();
+
+        List<FileShare> ownedFileShares = fileShareRepository.findAllByOwner(owner);
+
+        List<FileShareWithMetadataResponse> response = new ArrayList<>(); // TODO extract from here
+
+        for(FileShare fileShare: ownedFileShares) {
+
+            FileMetadata fileMetadata = fileShare.getFileMetadata();
+
+            Optional<FileKey> optionalFileKey = fileKeyRepository.findById(fileMetadata.getKeyId());
+            if(optionalFileKey.isEmpty()) {
+                throw new FileKeyDoesNotExistException("File key for given file could not be found");
+            }
+
+            FileMetadataResponse fileMetadataResponse = FileMetadataResponse.builder()
+                    .ownerEmail(fileMetadata.getOwner().getEmail())
+                    .ownerUserName(fileMetadata.getOwner().getUsername())
+                    .fileName(fileMetadata.getFileName())
+                    .fileDescription(fileMetadata.getDescription())
+                    .fileKey(optionalFileKey.get().getKey())
+                    .uploadTimestamp(fileMetadata.getUploadTimestamp())
+                    .publicFileFlag(fileMetadata.getPublicFileFlag())
+                    .size(fileMetadata.getSize())
+                    .build();
+
+            FileShareWithMetadataResponse fileShareWithMetadataResponse = FileShareWithMetadataResponse.builder()
+                    .fileMetadataResponse(fileMetadataResponse)
+                    .recipientEmail(fileShare.getRecipient().getEmail())
+                    .shareTimestamp(fileShare.getShareDate())
+                    .build();
+
+            response.add(fileShareWithMetadataResponse);
         }
 
         return response;
