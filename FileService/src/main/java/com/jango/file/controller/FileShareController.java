@@ -24,23 +24,34 @@ public class FileShareController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(path = "/recipient")
-    public ResponseEntity<List<FileShareWithMetadataResponse>> getReceiptedFilesMetadata(
-                                            @RequestParam(name = "recipientEmail") String recipientEmail,
-                                            @RequestHeader("authorization") String authToken) {
+    @GetMapping
+    public ResponseEntity<List<FileShareWithMetadataResponse>> getFileSharesWithMetadata(
+                                                                    @RequestHeader("Authorization") String authToken) {
 
-        List<FileShareWithMetadataResponse> response = fileShareService.getReceiptedFilesMetadata(recipientEmail,
-                                                                                                  authToken);
+        List<FileShareWithMetadataResponse> response =
+                fileShareService.getFileShares(authToken);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(path = "/recipient")
+    public ResponseEntity<List<FileShareWithMetadataResponse>> getReceiptedFileSharesMetadata(
+                                            @RequestParam(name = "recipientEmail") String recipientEmail,
+                                            @RequestHeader("Authorization") String authToken) {
+
+        List<FileShareWithMetadataResponse> response =
+                fileShareService.getReceiptedFileSharesMetadata(recipientEmail, authToken);
+
         return ResponseEntity.ok(response);
     }
 
     @GetMapping(path = "/owner")
-    public ResponseEntity<List<FileShareWithMetadataResponse>> getSharedFilesMetadata(
+    public ResponseEntity<List<FileShareWithMetadataResponse>> getFileSharesWithMetadata(
                                             @RequestParam(name = "ownerEmail") String ownerEmail,
-                                            @RequestHeader("authorization") String authToken) {
+                                            @RequestHeader("Authorization") String authToken) {
 
-        List<FileShareWithMetadataResponse> response = fileShareService.getSharesWithFilesMetadata(ownerEmail,
-                                                                                                   authToken);
+        List<FileShareWithMetadataResponse> response =
+                fileShareService.getFileSharesWithMetadata(ownerEmail, authToken);
 
         return ResponseEntity.ok(response);
     }

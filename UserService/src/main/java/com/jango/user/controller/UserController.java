@@ -27,17 +27,23 @@ public class UserController {
         return ResponseEntity.ok(responseBody);
     }
 
-    @GetMapping(path = "{email}")
+    @GetMapping(path = "/{email}")
     public ResponseEntity<UserDetailsResponse> getUserDetails(@PathVariable("email") String email) {
         UserDetailsResponse userDetailsResponse = userService.getUserDetailsByEmail(email);
         return ResponseEntity.ok(userDetailsResponse);
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDetailsResponse>> getUsersDetailsSortedByPhraseFit(
-                                                                        @RequestParam(name = "phrase") String phrase) {
+    public ResponseEntity<List<UserDetailsResponse>> getUsersDetails(
+                                                    @RequestParam(name = "phrase", required = false) String phrase) {
 
-        List<UserDetailsResponse> response = userService.getUsersDetailsSortedByPhraseFit(phrase);
+        List<UserDetailsResponse> response;
+
+        if(phrase != null) {
+            response = userService.getUsersDetailsSortedByPhraseFit(phrase);
+        } else {
+            response = userService.getUsersDetails();
+        }
 
         return ResponseEntity.ok(response);
     }

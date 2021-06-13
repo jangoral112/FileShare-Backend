@@ -92,7 +92,7 @@ public class FileShareService {
         return optionalFileMetadata.get();
     }
 
-    public List<FileShareWithMetadataResponse> getReceiptedFilesMetadata(String recipientEmail, String authToken) {
+    public List<FileShareWithMetadataResponse> getReceiptedFileSharesMetadata(String recipientEmail, String authToken) {
 
         Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(recipientEmail, authToken);
 
@@ -142,7 +142,7 @@ public class FileShareService {
         return response;
     }
 
-    public List<FileShareWithMetadataResponse> getSharesWithFilesMetadata(String ownerEmail, String authToken) {
+    public List<FileShareWithMetadataResponse> getFileSharesWithMetadata(String ownerEmail, String authToken) {
 
         Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(ownerEmail, authToken);
 
@@ -160,6 +160,53 @@ public class FileShareService {
         List<FileShareWithMetadataResponse> response = new ArrayList<>(); // TODO extract from here
 
         for(FileShare fileShare: ownedFileShares) {
+
+            FileMetadata fileMetadata = fileShare.getFileMetadata();
+
+            Optional<FileKey> optionalFileKey = fileKeyRepository.findById(fileMetadata.getKeyId());
+            if(optionalFileKey.isEmpty()) {
+                throw new FileKeyDoesNotExistException("File key for given file could not be found");
+            }
+
+            FileMetadataResponse fileMetadataResponse = FileMetadataResponse.builder()
+                    .ownerEmail(fileMetadata.getOwner().getEmail())
+                    .ownerUsername(fileMetadata.getOwner().getUsername())
+                    .fileName(fileMetadata.getFileName())
+                    .fileDescription(fileMetadata.getDescription())
+                    .fileKey(optionalFileKey.get().getKey())
+                    .uploadTimestamp(fileMetadata.getUploadTimestamp())
+                    .publicFileFlag(fileMetadata.getPublicFileFlag())
+                    .size(fileMetadata.getSize())
+                    .build();
+
+            FileShareWithMetadataResponse fileShareWithMetadataResponse = FileShareWithMetadataResponse.builder()
+                    .fileMetadataResponse(fileMetadataResponse)
+                    .recipientEmail(fileShare.getRecipient().getEmail())
+                    .recipientUsername(fileShare.getRecipient().getUsername())
+                    .shareTimestamp(fileShare.getShareDate())
+                    .build();
+
+            response.add(fileShareWithMetadataResponse);
+        }
+
+        return response;
+    }
+
+    public List<FileShareWithMetadataResponse> getFileShares(String authToken) {
+
+        Boolean tokenOwnerIsAdmin = authServiceClient.parseTokenAuthorities(authToken)
+                .stream()
+                .anyMatch(roleName -> roleName.equals("ROLE_ADMIN"));
+
+        if(tokenOwnerIsAdmin == false) {
+            throw new UnauthorizedAccessException("Requested resource is only available for admin");
+        }
+
+        List<FileShare> fileShares = fileShareRepository.findAll();
+
+        List<FileShareWithMetadataResponse> response = new ArrayList<>(); // TODO extract from here
+
+        for(FileShare fileShare: fileShares) {
 
             FileMetadata fileMetadata = fileShare.getFileMetadata();
 

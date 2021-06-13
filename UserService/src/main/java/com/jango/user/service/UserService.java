@@ -134,4 +134,24 @@ public class UserService {
 
         return usersDetailsResponse;
     }
+
+    public List<UserDetailsResponse> getUsersDetails() {
+
+        List<User> users = userRepository.findAll();
+
+        List<UserDetailsResponse> usersDetailsResponse = new ArrayList<>();
+
+        for(User user: users) {
+            UserDetailsResponse userDetailsResponse = UserDetailsResponse.builder()
+                    .username(user.getUsername())
+                    .email(user.getEmail())
+                    .description(user.getDescription())
+                    .creationDate(user.getCreationDate())
+                    .build();
+
+            usersDetailsResponse.add(userDetailsResponse);
+        }
+
+        return usersDetailsResponse;
+    }
 }
