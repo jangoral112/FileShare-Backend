@@ -8,7 +8,7 @@ public class FileMetadataMapper {
     public static FileMetadataResponse fileMetadataToResponse(FileMetadata fileMetaData, String key) {
         return  FileMetadataResponse.builder()
                                     .ownerEmail(fileMetaData.getOwner().getEmail())
-                                    .ownerUserName(fileMetaData.getOwner().getUsername())
+                                    .ownerUsername(fileMetaData.getOwner().getUsername())
                                     .fileName(fileMetaData.getFileName())
                                     .fileDescription(fileMetaData.getDescription())
                                     .fileKey(key)

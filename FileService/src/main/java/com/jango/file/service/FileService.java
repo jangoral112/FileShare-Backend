@@ -129,7 +129,7 @@ public class FileService {
         
         return FileMetadataResponse.builder()
                                    .ownerEmail(owner.getEmail())
-                                   .ownerUserName(owner.getUsername())
+                                   .ownerUsername(owner.getUsername())
                                    .fileName(fileMetadata.getFileName())
                                    .fileDescription(fileMetadata.getDescription())
                                    .fileKey(key)

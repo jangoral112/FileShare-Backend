@@ -120,7 +120,7 @@ public class FileShareService {
 
             FileMetadataResponse fileMetadataResponse = FileMetadataResponse.builder()
                     .ownerEmail(fileMetadata.getOwner().getEmail())
-                    .ownerUserName(fileMetadata.getOwner().getUsername())
+                    .ownerUsername(fileMetadata.getOwner().getUsername())
                     .fileName(fileMetadata.getFileName())
                     .fileDescription(fileMetadata.getDescription())
                     .fileKey(optionalFileKey.get().getKey())
@@ -170,7 +170,7 @@ public class FileShareService {
 
             FileMetadataResponse fileMetadataResponse = FileMetadataResponse.builder()
                     .ownerEmail(fileMetadata.getOwner().getEmail())
-                    .ownerUserName(fileMetadata.getOwner().getUsername())
+                    .ownerUsername(fileMetadata.getOwner().getUsername())
                     .fileName(fileMetadata.getFileName())
                     .fileDescription(fileMetadata.getDescription())
                     .fileKey(optionalFileKey.get().getKey())

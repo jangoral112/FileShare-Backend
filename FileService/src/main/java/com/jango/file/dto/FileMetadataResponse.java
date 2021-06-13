@@ -15,7 +15,7 @@ public class FileMetadataResponse {
     
     private String ownerEmail;
     
-    private String ownerUserName;
+    private String ownerUsername;
     
     private String fileName;
     
