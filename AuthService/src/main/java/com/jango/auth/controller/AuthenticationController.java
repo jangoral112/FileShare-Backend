@@ -1,7 +1,10 @@
 package com.jango.auth.controller;
 
 import com.jango.auth.dto.UserAuthenticationRequest;
+import com.jango.auth.dto.UserAuthenticationResponse;
+import com.jango.auth.jwt.JsonWebToken;
 import com.jango.auth.service.AuthenticationService;
+import org.javatuples.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,17 +19,14 @@ public class AuthenticationController {
     private AuthenticationService authenticationService;
 
     @PostMapping("/authUser")
-    public ResponseEntity<Map<String, String>> authenticateUser(@RequestBody UserAuthenticationRequest request) {
+    public ResponseEntity<UserAuthenticationResponse> authenticateUser(@RequestBody UserAuthenticationRequest request) {
 
-        String authToken = authenticationService.authenticateUser(request);
-
-        Map<String, String> responseBody = new HashMap<>();
-        responseBody.put("message", "Successfully logged in");
+        Pair<JsonWebToken, UserAuthenticationResponse> jwtWithResponse = authenticationService.authenticateUser(request);
 
         return ResponseEntity.ok()
                              .header("Access-Control-Expose-Headers", "Authorization")
-                             .header("Authorization", "Bearer " + authToken)
-                             .body(responseBody);
+                             .header("Authorization", "Bearer " + jwtWithResponse.getValue0().asString())
+                             .body(jwtWithResponse.getValue1());
     }
     
     @GetMapping("/validateOwner")

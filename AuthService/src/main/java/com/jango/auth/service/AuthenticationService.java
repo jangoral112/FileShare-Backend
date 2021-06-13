@@ -1,20 +1,25 @@
 package com.jango.auth.service;
 
+import com.jango.auth.dto.UserAuthenticationResponse;
+import com.jango.auth.entity.Role;
 import com.jango.auth.entity.User;
 import com.jango.auth.exception.IncorrectCredentialsException;
+import com.jango.auth.jwt.JsonWebToken;
 import com.jango.auth.jwt.JsonWebTokenConfig;
 import com.jango.auth.jwt.JsonWebTokenFactory;
 import com.jango.auth.repository.UserRepository;
 import com.jango.auth.dto.UserAuthenticationRequest;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import org.javatuples.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import reactor.util.function.Tuple2;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthenticationService {
@@ -31,15 +36,21 @@ public class AuthenticationService {
     @Autowired
     private JsonWebTokenConfig jwtConfig;
 
-    public String authenticateUser(UserAuthenticationRequest request) {
+    public Pair<JsonWebToken, UserAuthenticationResponse> authenticateUser(UserAuthenticationRequest request) {
 
         User user = userRepository.findUserByEmail(request.getEmail()).orElse(null);
 
         if((user != null && passwordEncoder.matches(request.getPassword(), user.getPassword())) == false) {
             throw new IncorrectCredentialsException("Incorrect email or password");
         }
+        List<String> authorities = user.getRoles().stream().map(Role::getName).collect(Collectors.toList());
 
-        return jsonWebTokenFactory.createJwtForUser(user).asString();
+        UserAuthenticationResponse response = UserAuthenticationResponse.builder()
+                .message("Successfully logged in")
+                .authorities(authorities)
+                .build();
+
+        return Pair.with(jsonWebTokenFactory.createJwtForUser(user), response);
     }
     
     public Boolean isUserOwnerOfToken(String email, String authHeader) {
