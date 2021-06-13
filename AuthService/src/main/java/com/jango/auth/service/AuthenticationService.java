@@ -9,6 +9,7 @@ import com.jango.auth.jwt.JsonWebTokenConfig;
 import com.jango.auth.jwt.JsonWebTokenFactory;
 import com.jango.auth.repository.UserRepository;
 import com.jango.auth.dto.UserAuthenticationRequest;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import org.javatuples.Pair;
@@ -72,5 +73,18 @@ public class AuthenticationService {
         } catch (ExpiredJwtException e) { // TODO throw exception
             return false;
         }
+    }
+
+    public List<String> parseTokenAuthorities(String authHeader) {
+
+        Claims claims = Jwts.parser()
+                .setSigningKey(jwtConfig.getSecretKey().getBytes())
+                .parseClaimsJws(authHeader)
+                .getBody();
+
+        @SuppressWarnings("unchecked")
+        List<String> authorities = (List<String>) claims.get("authorities");
+
+        return authorities;
     }
 }

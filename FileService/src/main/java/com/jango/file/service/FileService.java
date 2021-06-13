@@ -7,6 +7,7 @@ import com.jango.file.dto.FileUploadMetadata;
 import com.jango.file.dto.UserDetailsWithIdResponse;
 import com.jango.file.entity.FileKey;
 import com.jango.file.entity.FileMetadata;
+import com.jango.file.entity.Role;
 import com.jango.file.entity.User;
 import com.jango.file.exception.FileDownloadException;
 import com.jango.file.exception.FileNotFoundException;
@@ -123,7 +124,11 @@ public class FileService {
         User owner = fileMetadata.getOwner();
         Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(owner.getEmail(), authToken);
 
-        if(ownerOfToken == false && fileMetadata.getPublicFileFlag() == false) { // TODO if user is admin allow to get data
+        Boolean tokenOwnerIsAdmin = authServiceClient.parseTokenAuthorities(authToken)
+                .stream()
+                .anyMatch(roleName -> roleName.equals("ROLE_ADMIN"));
+
+        if(ownerOfToken == false && fileMetadata.getPublicFileFlag() == false && tokenOwnerIsAdmin == false) {
             throw new UnauthorizedAccessException("Unauthorized access to private file");
         }
         
@@ -149,7 +154,11 @@ public class FileService {
 
         Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(fileMetaData.getOwner().getEmail(), authToken);
 
-        if(ownerOfToken == false) { // TODO if user is admin allow to remove file
+        Boolean tokenOwnerIsAdmin = authServiceClient.parseTokenAuthorities(authToken)
+                .stream()
+                .anyMatch(roleName -> roleName.equals("ROLE_ADMIN"));
+
+        if(ownerOfToken == false && tokenOwnerIsAdmin == false) {
             throw new UnauthorizedAccessException("Unauthorized deletion of file");
         }
         
@@ -176,7 +185,7 @@ public class FileService {
         return optionalFileMetaData.get();
     }
     
-    public List<FileMetadataResponse> getFileMetadataList(String ownerEmail, Boolean privateFiles, String token) { // TODO allow admin to view all files both public and private
+    public List<FileMetadataResponse> getFileMetadataList(String ownerEmail, Boolean privateFiles, String authToken) {
 
         List<FileMetadata> filesMetaData;
 
@@ -188,9 +197,13 @@ public class FileService {
                     .build();
 
             if(privateFiles != null && privateFiles == true) {
-                Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(ownerEmail, token);
+                Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(ownerEmail, authToken);
 
-                if(ownerOfToken == false) {
+                Boolean tokenOwnerIsAdmin = authServiceClient.parseTokenAuthorities(authToken)
+                        .stream()
+                        .anyMatch(roleName -> roleName.equals("ROLE_ADMIN"));
+
+                if(ownerOfToken == false && tokenOwnerIsAdmin == false) {
                     throw new UnauthorizedAccessException("Unauthorized access to private files");
                 }
                 filesMetaData = fileMetaDataRepository.findAllByOwner(owner);

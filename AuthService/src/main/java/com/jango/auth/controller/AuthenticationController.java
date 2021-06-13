@@ -9,8 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @RestController
 public class AuthenticationController {
@@ -30,12 +29,19 @@ public class AuthenticationController {
     }
     
     @GetMapping("/validateOwner")
-    public ResponseEntity<Boolean> isUserOwnerOfToken(@RequestParam("email") String email, @RequestHeader("authorization") String authHeader) {
+    public ResponseEntity<Boolean> isUserOwnerOfToken(@RequestParam("email") String email,
+                                                      @RequestHeader("Authorization") String authHeader) {
         
         Boolean result = authenticationService.isUserOwnerOfToken(email, authHeader);
         
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/token/authorities")
+    public ResponseEntity<List<String>> parseTokenAuthorities(@RequestHeader("Authorization") String authHeader) {
 
+        List<String> response = authenticationService.parseTokenAuthorities(authHeader);
+
+        return ResponseEntity.ok(response);
+    }
 }
