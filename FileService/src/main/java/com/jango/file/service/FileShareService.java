@@ -71,7 +71,7 @@ public class FileShareService {
 
         fileShareRepository.save(fileShare); // TODO check if file is already shared, check if user is sharing file with himself
 
-        return "Successfully uploaded file";
+        return "Successfully shared file";
     }
 
 
