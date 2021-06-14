@@ -3,6 +3,7 @@ package com.jango.user.service;
 import com.jango.user.client.AuthServiceClient;
 import com.jango.user.client.FileServiceClient;
 import com.jango.user.dto.CreateUserRequest;
+import com.jango.user.dto.PatchUserRolesRequest;
 import com.jango.user.dto.UserDetailsResponse;
 import com.jango.user.dto.UserDetailsWithIdResponse;
 import com.jango.user.entity.Role;
@@ -92,14 +93,63 @@ public class UserService {
                 .creationDate(user.getCreationDate())
                 .build();
     }
-    
+
+    public Set<String> getUsersRoles(String email, String authToken) {
+
+        Boolean tokenOwnerIsAdmin = authServiceClient.parseTokenAuthorities(authToken)
+                .stream()
+                .anyMatch(roleName -> roleName.equals("ROLE_ADMIN"));
+
+        if(false == tokenOwnerIsAdmin) {
+            throw new UnauthorizedAccessException("Only admin can get user's roles");
+        }
+
+        Optional<User> optionalUser = userRepository.getUserByEmail(email);
+
+        if(optionalUser.isEmpty()) {
+            throw new UserDoesNotExistException("User does not exist");
+        }
+
+        return optionalUser.get().getRoles().stream().map(Role::getName).collect(Collectors.toSet());
+    }
+
+    public String patchUserRoles(String email, PatchUserRolesRequest patchUserRolesRequest, String authToken) {
+
+        Boolean tokenOwnerIsAdmin = authServiceClient.parseTokenAuthorities(authToken)
+                .stream()
+                .anyMatch(roleName -> roleName.equals("ROLE_ADMIN"));
+
+        if(false == tokenOwnerIsAdmin) {
+            throw new UnauthorizedAccessException("Only admin can get user's roles");
+        }
+
+        Optional<User> optionalUser = userRepository.getUserByEmail(email);
+
+        if(optionalUser.isEmpty()) {
+            throw new UserDoesNotExistException("User does not exist");
+        }
+
+        Set<Role> roles = patchUserRolesRequest.getRoles()
+                .stream()
+                .map(name -> roleRepository.getRoleByName(name))
+                .collect(Collectors.toSet());
+
+        User user = optionalUser.get();
+
+        user.setRoles(roles);
+
+        userRepository.save(user);
+
+        return "{ \"message\": \"Successfully updated user roles\" }";
+    }
+
     public UserDetailsWithIdResponse getUserDetailsWithIdByEmail(String email) { // TODO secure
         Optional<User> optionalUser = userRepository.getUserByEmail(email);
         if(optionalUser.isEmpty()) {
             throw new UserDoesNotExistException("User with email: " + email + " does not exist");
         }
         User user = optionalUser.get();
-        
+
         return UserDetailsWithIdResponse.builder()
                                         .username(user.getUsername())
                                         .email(user.getEmail())
@@ -108,14 +158,14 @@ public class UserService {
                                         .id(user.getId())
                                         .build();
     }
-    
+
     public UserDetailsWithIdResponse getUserDetailsWithIdById(Long userId) {
         Optional<User> optionalUser = userRepository.findById(userId);
         if(optionalUser.isEmpty()) {
             throw new UserDoesNotExistException("User with id: " + userId + " does not exist");
         }
         User user = optionalUser.get();
-        
+
         return UserDetailsWithIdResponse.builder()
                                         .username(user.getUsername())
                                         .email(user.getEmail())

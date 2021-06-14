@@ -1,6 +1,7 @@
 package com.jango.user.controller;
 
 import com.jango.user.dto.CreateUserRequest;
+import com.jango.user.dto.PatchUserRolesRequest;
 import com.jango.user.dto.UserDetailsResponse;
 import com.jango.user.dto.UserDetailsWithIdResponse;
 import com.jango.user.service.UserService;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/user")
@@ -53,6 +55,25 @@ public class UserController {
                                              @RequestHeader("Authorization") String authToken) {
 
         String response = userService.deleteUser(email, authToken);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(path = "/role/{email}")
+    public ResponseEntity<Set<String>> getUsersRoles(@PathVariable("email") String email,
+                                                     @RequestHeader("Authorization") String authToken) {
+
+        Set<String> response = userService.getUsersRoles(email, authToken);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping(path = "/role/{email}")
+    public ResponseEntity<String> patchUserRoles(@PathVariable String email,
+                                                 @RequestBody PatchUserRolesRequest patchUserRolesRequest,
+                                                 @RequestHeader("Authorization") String authToken) {
+
+        String response = userService.patchUserRoles(email, patchUserRolesRequest, authToken);
 
         return ResponseEntity.ok(response);
     }

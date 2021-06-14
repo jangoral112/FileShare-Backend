@@ -223,6 +223,10 @@ public class FileService {
 
         List<FileMetadata> filesMetaData;
 
+        Boolean tokenOwnerIsAdmin = authServiceClient.parseTokenAuthorities(authToken)
+                .stream()
+                .anyMatch(roleName -> roleName.equals("ROLE_ADMIN"));
+
         if(ownerEmail != null) {
 
             UserDetailsWithIdResponse userDetails = userServiceClient.getUserDetailsByEmail(ownerEmail);
@@ -233,10 +237,6 @@ public class FileService {
             if(privateFiles != null && privateFiles == true) {
                 Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(ownerEmail, authToken);
 
-                Boolean tokenOwnerIsAdmin = authServiceClient.parseTokenAuthorities(authToken)
-                        .stream()
-                        .anyMatch(roleName -> roleName.equals("ROLE_ADMIN"));
-
                 if(ownerOfToken == false && tokenOwnerIsAdmin == false) {
                     throw new UnauthorizedAccessException("Unauthorized access to private files");
                 }
@@ -244,6 +244,8 @@ public class FileService {
             } else {
                 filesMetaData = fileMetadataRepository.findAllByOwnerAndPublic(owner);
             }
+        } else if(tokenOwnerIsAdmin && privateFiles) {
+            filesMetaData = fileMetadataRepository.findAll();
         } else {
             filesMetaData = fileMetadataRepository.findAllPublic();
         }
