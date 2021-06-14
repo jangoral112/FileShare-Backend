@@ -1,5 +1,6 @@
 package com.jango.file.controller;
 
+import com.jango.file.dto.DeleteFileShareRequest;
 import com.jango.file.dto.FileShareRequest;
 import com.jango.file.dto.FileShareWithMetadataResponse;
 import com.jango.file.service.FileShareService;
@@ -30,6 +31,14 @@ public class FileShareController {
 
         List<FileShareWithMetadataResponse> response =
                 fileShareService.getFileShares(authToken);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<String> deleteFileShare(@RequestBody DeleteFileShareRequest request) {
+
+        String response = fileShareService.deleteFileShare(request);
 
         return ResponseEntity.ok(response);
     }

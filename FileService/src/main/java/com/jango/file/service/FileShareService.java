@@ -2,18 +2,12 @@ package com.jango.file.service;
 
 import com.jango.file.client.AuthServiceClient;
 import com.jango.file.client.UserServiceClient;
-import com.jango.file.dto.FileMetadataResponse;
-import com.jango.file.dto.FileShareRequest;
-import com.jango.file.dto.FileShareWithMetadataResponse;
-import com.jango.file.dto.UserDetailsWithIdResponse;
+import com.jango.file.dto.*;
 import com.jango.file.entity.FileKey;
 import com.jango.file.entity.FileMetadata;
 import com.jango.file.entity.FileShare;
 import com.jango.file.entity.User;
-import com.jango.file.exception.FileKeyDoesNotExistException;
-import com.jango.file.exception.FileNotFoundException;
-import com.jango.file.exception.UnauthorizedAccessException;
-import com.jango.file.exception.UserIsNotFileOwnerException;
+import com.jango.file.exception.*;
 import com.jango.file.repository.FileKeyRepository;
 import com.jango.file.repository.FileMetaDataRepository;
 import com.jango.file.repository.FileShareRepository;
@@ -46,6 +40,10 @@ public class FileShareService {
 
     public String shareFile(FileShareRequest fileShareRequest) {
 
+        if(fileShareRequest.getOwnerEmail().equals(fileShareRequest.getRecipientEmail())) {
+            throw new SelfShareException("Invalid request, recipient can not be owner of given file");
+        }
+
         UserDetailsWithIdResponse ownerDetails = userServiceClient.getUserDetailsByEmail(fileShareRequest.getOwnerEmail()); // TODO catch user not found
         UserDetailsWithIdResponse recipientDetails = userServiceClient.getUserDetailsByEmail(fileShareRequest.getRecipientEmail());
         FileMetadata fileMetadata = getFileMetaDataByFileKey(fileShareRequest.getFileKey());
@@ -62,6 +60,12 @@ public class FileShareService {
                 .id(recipientDetails.getId())
                 .build();
 
+        Boolean shareExist = fileShareRepository.existsByFileMetadataAndRecipient(fileMetadata, recipient);
+
+        if(shareExist) {
+            throw new FileShareAlreadyExistException("File is already shared");
+        }
+
         FileShare fileShare = FileShare.builder()
                 .owner(owner)
                 .recipient(recipient)
@@ -69,11 +73,31 @@ public class FileShareService {
                 .shareDate(Timestamp.valueOf(LocalDateTime.now()))
                 .build();
 
-        fileShareRepository.save(fileShare); // TODO check if file is already shared, check if user is sharing file with himself
+        fileShareRepository.save(fileShare);
 
         return "Successfully shared file";
     }
 
+
+    public String deleteFileShare(DeleteFileShareRequest request) {
+
+        UserDetailsWithIdResponse recipientDetails = userServiceClient.getUserDetailsByEmail(request.getRecipientEmail());
+
+        FileMetadata fileMetadata = getFileMetaDataByFileKey(request.getFileKey());
+        User recipient = User.builder()
+                .id(recipientDetails.getId())
+                .build();
+
+        Optional<FileShare> optionalFileShare = fileShareRepository.findByFileMetadataAndRecipient(fileMetadata, recipient);
+
+        if(optionalFileShare.isEmpty()) {
+            throw new FileNotFoundException("File does not exist");
+        }
+
+        fileShareRepository.delete(optionalFileShare.get());
+
+        return "Successfully deleted file";
+    }
 
     private FileMetadata getFileMetaDataByFileKey(String key) { // TODO extract this common method from this class and FileService
 
