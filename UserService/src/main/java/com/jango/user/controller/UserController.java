@@ -48,6 +48,15 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @DeleteMapping(path = "/{email}")
+    public ResponseEntity<String> deleteUser(@PathVariable("email") String email,
+                                             @RequestHeader("Authorization") String authToken) {
+
+        String response = userService.deleteUser(email, authToken);
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping(value = "/private/details", params = {"email"})
     public ResponseEntity<UserDetailsWithIdResponse> getUserDetailsByEmail(@RequestParam(value = "email") String email) {
         UserDetailsWithIdResponse response = userService.getUserDetailsWithIdByEmail(email);

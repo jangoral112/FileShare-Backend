@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface FileMetaDataRepository extends JpaRepository<FileMetadata, Long> {
+public interface FileMetadataRepository extends JpaRepository<FileMetadata, Long> {
 
     public Optional<FileMetadata> findByKeyId(Long keyId);
 

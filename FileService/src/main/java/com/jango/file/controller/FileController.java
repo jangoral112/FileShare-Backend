@@ -60,6 +60,15 @@ public class FileController {
         
         return new ResponseEntity<>("Failed to remove file", HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @DeleteMapping("/user/{email}")
+    public ResponseEntity<String>  deleteAllUsersFiles(@PathVariable(name = "email") String email,
+                                                       @RequestHeader("authorization") String authToken) {
+
+        String response = fileService.deleteAllUsersFiles(email, authToken);
+
+        return ResponseEntity.ok(response);
+    }
     
     @GetMapping(path = "/metadata")
     public ResponseEntity<List<FileMetadataResponse>> getFileMetadataList(@RequestParam(name = "ownerEmail", required = false) String ownerEmail,

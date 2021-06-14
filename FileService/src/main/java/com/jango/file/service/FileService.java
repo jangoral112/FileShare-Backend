@@ -7,14 +7,11 @@ import com.jango.file.dto.FileUploadMetadata;
 import com.jango.file.dto.UserDetailsWithIdResponse;
 import com.jango.file.entity.FileKey;
 import com.jango.file.entity.FileMetadata;
-import com.jango.file.entity.Role;
 import com.jango.file.entity.User;
-import com.jango.file.exception.FileDownloadException;
-import com.jango.file.exception.FileNotFoundException;
-import com.jango.file.exception.UnauthorizedAccessException;
+import com.jango.file.exception.*;
 import com.jango.file.mapping.FileMetadataMapper;
 import com.jango.file.repository.FileKeyRepository;
-import com.jango.file.repository.FileMetaDataRepository;
+import com.jango.file.repository.FileMetadataRepository;
 import com.jango.file.repository.FileStorageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,7 +34,7 @@ public class FileService {
     private FileStorageRepository fileStorageRepository;
     
     @Autowired
-    private FileMetaDataRepository fileMetaDataRepository;
+    private FileMetadataRepository fileMetadataRepository;
     
     @Autowired
     private FileKeyRepository fileKeyRepository;
@@ -70,11 +67,11 @@ public class FileService {
                                                 .build();
 
         
-        FileMetadata savedMetaData = fileMetaDataRepository.save(fileMetaData);
+        FileMetadata savedMetaData = fileMetadataRepository.save(fileMetaData);
 
         Optional<FileKey> optionalFileKey = fileKeyRepository.findById(savedMetaData.getKeyId());
         if(optionalFileKey.isEmpty()) {
-            fileMetaDataRepository.delete(savedMetaData);
+            fileMetadataRepository.delete(savedMetaData);
             return false;
         }
 
@@ -83,7 +80,7 @@ public class FileService {
         try {
             fileStorageRepository.uploadFile(file, fileKey.getKey());
         } catch (Exception e) {
-            fileMetaDataRepository.delete(savedMetaData);
+            fileMetadataRepository.delete(savedMetaData);
             fileKeyRepository.delete(fileKey);
             e.printStackTrace();
             return false;
@@ -114,13 +111,13 @@ public class FileService {
     }
 
     public FileMetadataResponse getFileMetadataByKey(String key, String authToken) {
-        
+
         FileMetadata fileMetadata = getFileMetadataByKey(key);
-        
+
         if(fileMetadata == null) {
             throw new FileNotFoundException("File with given key does not exist!");
         }
-        
+
         User owner = fileMetadata.getOwner();
         Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(owner.getEmail(), authToken);
 
@@ -131,7 +128,7 @@ public class FileService {
         if(ownerOfToken == false && fileMetadata.getPublicFileFlag() == false && tokenOwnerIsAdmin == false) {
             throw new UnauthorizedAccessException("Unauthorized access to private file");
         }
-        
+
         return FileMetadataResponse.builder()
                                    .ownerEmail(owner.getEmail())
                                    .ownerUsername(owner.getUsername())
@@ -143,16 +140,16 @@ public class FileService {
                                    .size(fileMetadata.getSize())
                                    .build();
     }
-    
+
     public boolean deleteFile(String key, String authToken) {
-        
-        FileMetadata fileMetaData = getFileMetadataByKey(key);
-        
-        if(fileMetaData == null) {
+
+        FileMetadata fileMetadata = getFileMetadataByKey(key);
+
+        if(fileMetadata == null) {
             throw new FileNotFoundException("File with given key does not exist!");
         }
 
-        Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(fileMetaData.getOwner().getEmail(), authToken);
+        Boolean ownerOfToken = authServiceClient.isUserOwnerOfToken(fileMetadata.getOwner().getEmail(), authToken);
 
         Boolean tokenOwnerIsAdmin = authServiceClient.parseTokenAuthorities(authToken)
                 .stream()
@@ -161,30 +158,67 @@ public class FileService {
         if(ownerOfToken == false && tokenOwnerIsAdmin == false) {
             throw new UnauthorizedAccessException("Unauthorized deletion of file");
         }
-        
-        fileMetaDataRepository.delete(fileMetaData);
+
+        fileMetadataRepository.delete(fileMetadata);
         fileKeyRepository.deleteByKey(key);
         return fileStorageRepository.removeFile(key);
     }
-    
+
+    public String deleteAllUsersFiles(String ownerEmail, String authToken) {
+
+        Boolean tokenOwnerIsAdmin = authServiceClient.parseTokenAuthorities(authToken)
+                .stream()
+                .anyMatch(roleName -> roleName.equals("ROLE_ADMIN"));
+
+        if(tokenOwnerIsAdmin == false) {
+            throw new UnauthorizedAccessException("Unauthorized deletion of file");
+        }
+
+        UserDetailsWithIdResponse userDetails = userServiceClient.getUserDetailsByEmail(ownerEmail);
+        User owner = User.builder()
+                .id(userDetails.getId())
+                .build();
+
+        List<FileMetadata> userFiles = fileMetadataRepository.findAllByOwner(owner);
+
+        for(FileMetadata fileMetadata: userFiles) {
+
+            Optional<FileKey> optionalFileKey = fileKeyRepository.findById(fileMetadata.getKeyId());
+
+            if(optionalFileKey.isEmpty()) {
+                throw new FileKeyDoesNotExistException("File key does not exist");
+            }
+
+            FileKey fileKey = optionalFileKey.get();
+
+            fileMetadataRepository.delete(fileMetadata);
+            fileKeyRepository.deleteByKey(fileKey.getKey());
+            if(false == fileStorageRepository.removeFile(fileKey.getKey())) {
+                throw new FileDeletionFailedException("Failed to delete file");
+            }
+        }
+
+        return "Successfully deleted all users files";
+    }
+
     private FileMetadata getFileMetadataByKey(String key) {
-        
+
         Optional<FileKey> optionalFileKey = fileKeyRepository.findByKey(key);
-        
+
         if(optionalFileKey.isEmpty()) {
             return null;
         }
 
         FileKey fileKey = optionalFileKey.get();
 
-        Optional<FileMetadata> optionalFileMetaData = fileMetaDataRepository.findByKeyId(fileKey.getId());
+        Optional<FileMetadata> optionalFileMetaData = fileMetadataRepository.findByKeyId(fileKey.getId());
         if(optionalFileMetaData.isEmpty()) {
             return null;
         }
 
         return optionalFileMetaData.get();
     }
-    
+
     public List<FileMetadataResponse> getFileMetadataList(String ownerEmail, Boolean privateFiles, String authToken) {
 
         List<FileMetadata> filesMetaData;
@@ -206,12 +240,12 @@ public class FileService {
                 if(ownerOfToken == false && tokenOwnerIsAdmin == false) {
                     throw new UnauthorizedAccessException("Unauthorized access to private files");
                 }
-                filesMetaData = fileMetaDataRepository.findAllByOwner(owner);
+                filesMetaData = fileMetadataRepository.findAllByOwner(owner);
             } else {
-                filesMetaData = fileMetaDataRepository.findAllByOwnerAndPublic(owner);
+                filesMetaData = fileMetadataRepository.findAllByOwnerAndPublic(owner);
             }
         } else {
-            filesMetaData = fileMetaDataRepository.findAllPublic();
+            filesMetaData = fileMetadataRepository.findAllPublic();
         }
 
         return filesMetaData.stream().map(

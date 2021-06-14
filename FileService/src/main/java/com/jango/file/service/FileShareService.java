@@ -9,7 +9,7 @@ import com.jango.file.entity.FileShare;
 import com.jango.file.entity.User;
 import com.jango.file.exception.*;
 import com.jango.file.repository.FileKeyRepository;
-import com.jango.file.repository.FileMetaDataRepository;
+import com.jango.file.repository.FileMetadataRepository;
 import com.jango.file.repository.FileShareRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,7 +30,7 @@ public class FileShareService {
     private AuthServiceClient authServiceClient;
 
     @Autowired
-    private FileMetaDataRepository fileMetaDataRepository;
+    private FileMetadataRepository fileMetaDataRepository;
 
     @Autowired
     private FileKeyRepository fileKeyRepository;

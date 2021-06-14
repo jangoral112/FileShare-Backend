@@ -1,11 +1,14 @@
 package com.jango.user.service;
 
+import com.jango.user.client.AuthServiceClient;
+import com.jango.user.client.FileServiceClient;
 import com.jango.user.dto.CreateUserRequest;
 import com.jango.user.dto.UserDetailsResponse;
 import com.jango.user.dto.UserDetailsWithIdResponse;
 import com.jango.user.entity.Role;
 import com.jango.user.entity.User;
 import com.jango.user.enumeration.Roles;
+import com.jango.user.exception.UnauthorizedAccessException;
 import com.jango.user.exception.UserAlreadyExistException;
 import com.jango.user.exception.UserDoesNotExistException;
 import com.jango.user.repository.RoleRepository;
@@ -21,6 +24,12 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserService {
+
+    @Autowired
+    private AuthServiceClient authServiceClient;
+
+    @Autowired
+    private FileServiceClient fileServiceClient;
 
     @Autowired
     private UserRepository userRepository;
@@ -153,5 +162,28 @@ public class UserService {
         }
 
         return usersDetailsResponse;
+    }
+
+    public String deleteUser(String email, String authToken) {
+
+        Boolean tokenOwnerIsAdmin = authServiceClient.parseTokenAuthorities(authToken)
+                .stream()
+                .anyMatch(roleName -> roleName.equals("ROLE_ADMIN"));
+
+        if(tokenOwnerIsAdmin == false) {
+            throw new UnauthorizedAccessException("Only admin can delete user");
+        }
+
+        Optional<User> optionalUser = userRepository.getUserByEmail(email);
+
+        if(optionalUser.isEmpty()) {
+            throw new UserDoesNotExistException("User does not exist");
+        }
+
+        fileServiceClient.deleteAllUsersFiles(email, authToken);
+
+        userRepository.delete(optionalUser.get());
+
+        return "Successfully deleted user";
     }
 }
