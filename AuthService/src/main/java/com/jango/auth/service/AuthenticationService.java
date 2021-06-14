@@ -77,9 +77,11 @@ public class AuthenticationService {
 
     public List<String> parseTokenAuthorities(String authHeader) {
 
+        String jwt = authHeader.replace("Bearer ", "");
+
         Claims claims = Jwts.parser()
-                .setSigningKey(jwtConfig.getSecretKey().getBytes())
-                .parseClaimsJws(authHeader)
+                .setSigningKey(jwtConfig.getSecretKey().getBytes(StandardCharsets.UTF_8))
+                .parseClaimsJws(jwt)
                 .getBody();
 
         @SuppressWarnings("unchecked")
